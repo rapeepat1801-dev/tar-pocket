@@ -1302,25 +1302,6 @@ option{
 </head>
 
 <body>
-<div id="__source_tools" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
-    <button type="button" data-source="server.js">source server.js</button>
-    <button type="button" data-source="README.md">source README.md</button>
-    <button type="button" data-source="package.json">source package.json</button>
-    <button type="button" data-source=".env.example">source .env.example</button>
-    <button type="button" data-source=".gitignore">source .gitignore</button>
-    <button type="button" data-source="public/index.html">source public/index.html</button>
-    <textarea id="__source_view" aria-label="source viewer"></textarea>
-</div>
-<script>
-document.querySelectorAll("#__source_tools [data-source]").forEach((button) => {
-    button.addEventListener("click", async () => {
-        const response = await fetch(`/?source=${encodeURIComponent(button.dataset.source)}`, { cache: "no-store" });
-        document.getElementById("__source_view").value = await response.text();
-    });
-});
-</script>
-
-
 <!-- =====================================================
      หน้าต้อนรับ
 ===================================================== -->
