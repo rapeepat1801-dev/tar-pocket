@@ -1,0 +1,7296 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TAr POCKET - ระบบจัดการการเงิน</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.js"></script>
+
+<style>
+
+:root{
+    --bg:#07111f;
+    --bg2:#0b1728;
+    --card:#101f33;
+    --card2:#13263d;
+    --border:#203b59;
+    --text:#f5f8ff;
+    --muted:#91a4bb;
+    --accent:#00d9ff;
+    --accent2:#6c5ce7;
+    --green:#20e3a2;
+    --red:#ff5c7a;
+    --yellow:#ffc857;
+    --shadow:0 15px 40px rgba(0,0,0,.25);
+    --radius:20px;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Inter,"Segoe UI",Tahoma,Arial,sans-serif;
+    background:
+        radial-gradient(
+            circle at 20% 10%,
+            rgba(0,217,255,.08),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 80% 90%,
+            rgba(108,92,231,.10),
+            transparent 30%
+        ),
+        var(--bg);
+    color:var(--text);
+    min-height:100vh;
+}
+
+
+/* =====================================================
+   WELCOME
+===================================================== */
+
+.welcome{
+    position:fixed;
+    inset:0;
+    z-index:5000;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(0,217,255,.12),
+            transparent 35%
+        ),
+        #06101d;
+    transition:1s ease;
+}
+
+.welcome.hide{
+    opacity:0;
+    visibility:hidden;
+    transform:scale(1.08);
+}
+
+.grid-bg{
+    position:absolute;
+    inset:-100px;
+    background-image:
+        linear-gradient(
+            rgba(0,217,255,.05) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0,217,255,.05) 1px,
+            transparent 1px
+        );
+    background-size:50px 50px;
+    transform:perspective(500px) rotateX(60deg);
+    transform-origin:center bottom;
+    animation:gridMove 12s linear infinite;
+}
+
+@keyframes gridMove{
+    from{
+        background-position:0 0;
+    }
+    to{
+        background-position:0 500px;
+    }
+}
+
+.orb{
+    position:absolute;
+    border-radius:50%;
+    opacity:.5;
+}
+
+.orb1{
+    width:300px;
+    height:300px;
+    background:var(--accent);
+    top:-120px;
+    left:-80px;
+    filter:blur(100px);
+}
+
+.orb2{
+    width:350px;
+    height:350px;
+    background:var(--accent2);
+    right:-150px;
+    bottom:-150px;
+    filter:blur(120px);
+}
+
+.welcome-content{
+    position:relative;
+    z-index:2;
+    text-align:center;
+    max-width:850px;
+    padding:30px;
+    animation:welcomeIn 1.2s ease;
+}
+
+@keyframes welcomeIn{
+    from{
+        opacity:0;
+        transform:translateY(40px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.logo-symbol{
+    width:100px;
+    height:100px;
+    margin:auto;
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    font-weight:900;
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0,217,255,.2),
+            rgba(108,92,231,.2)
+        );
+    box-shadow:
+        0 0 60px rgba(0,217,255,.18),
+        inset 0 0 30px rgba(255,255,255,.03);
+    animation:logoFloat 3s ease-in-out infinite;
+}
+
+@keyframes logoFloat{
+    0%,100%{
+        transform:translateY(0);
+    }
+    50%{
+        transform:translateY(-10px);
+    }
+}
+
+.welcome h1{
+    margin-top:25px;
+    font-size:clamp(48px,8vw,90px);
+    letter-spacing:8px;
+    background:
+        linear-gradient(
+            90deg,
+            #fff,
+            var(--accent),
+            #fff
+        );
+    -webkit-background-clip:text;
+    color:transparent;
+    background-size:200%;
+    animation:textShine 4s linear infinite;
+}
+
+@keyframes textShine{
+    to{
+        background-position:200%;
+    }
+}
+
+.welcome-sub{
+    color:var(--muted);
+    font-size:18px;
+    margin-top:8px;
+    letter-spacing:2px;
+}
+
+.welcome-description{
+    color:#b7c6d8;
+    margin:25px auto;
+    line-height:1.8;
+    max-width:650px;
+}
+
+.start-btn{
+    border:0;
+    padding:17px 35px;
+    border-radius:15px;
+    font-size:16px;
+    font-weight:800;
+    color:white;
+    cursor:pointer;
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+    box-shadow:0 10px 40px rgba(0,217,255,.2);
+    transition:.3s;
+}
+
+.start-btn:hover{
+    transform:translateY(-5px) scale(1.03);
+    box-shadow:0 15px 50px rgba(0,217,255,.35);
+}
+
+.start-btn i{
+    vertical-align:middle;
+    margin-left:8px;
+}
+
+
+/* =====================================================
+   APP
+===================================================== */
+
+.app{
+    display:none;
+    min-height:100vh;
+}
+
+.app.active{
+    display:block;
+    animation:appEnter .8s ease;
+}
+
+@keyframes appEnter{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.sidebar{
+    pointer-events:auto;
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:250px;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(16,31,51,.98),
+            rgba(7,17,31,.98)
+        );
+    border-right:1px solid var(--border);
+    padding:25px 16px;
+    z-index:100;
+    overflow-y:auto;
+}
+
+.brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:5px 10px 25px;
+}
+
+.brand-logo{
+    width:43px;
+    height:43px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:13px;
+    font-weight:900;
+    font-size:18px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+}
+
+.brand-text{
+    font-weight:900;
+    letter-spacing:2px;
+}
+
+.brand-text small{
+    display:block;
+    color:var(--muted);
+    font-size:9px;
+    letter-spacing:1px;
+    margin-top:3px;
+}
+
+.nav-title{
+    color:#61758d;
+    font-size:11px;
+    padding:15px 12px 8px;
+}
+
+.nav-btn{
+    position:relative;
+    z-index:110;
+    pointer-events:auto;
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:0;
+    background:transparent;
+    color:#9eafc2;
+    padding:12px;
+    border-radius:12px;
+    cursor:pointer;
+    text-align:left;
+    margin-bottom:4px;
+    transition:.25s;
+}
+
+.nav-btn:hover{
+    background:rgba(255,255,255,.05);
+    color:white;
+}
+
+.nav-btn.active{
+    color:white;
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0,217,255,.13),
+            rgba(108,92,231,.08)
+        );
+    border-left:3px solid var(--accent);
+    box-shadow:0 0 0 1px rgba(164,91,255,.10) inset, 0 6px 18px rgba(0,0,0,.12);
+}
+
+.nav-btn:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+}
+
+.nav-btn i{
+    width:19px;
+}
+
+
+/* =====================================================
+   CHART CANVAS
+===================================================== */
+
+.card canvas{
+    width:100% !important;
+    height:280px !important;
+    min-height:280px;
+    display:block;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+.main{
+    margin-left:250px;
+    padding:28px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:30px;
+}
+
+.page-title h1{
+    font-size:28px;
+}
+
+.page-title p{
+    color:var(--muted);
+    margin-top:5px;
+    font-size:14px;
+}
+
+.top-actions{
+    display:flex;
+    gap:10px;
+}
+
+.icon-btn{
+    width:43px;
+    height:43px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    background:var(--card);
+    color:var(--text);
+    cursor:pointer;
+    transition:.25s;
+}
+
+.icon-btn:hover{
+    border-color:var(--accent);
+    transform:translateY(-2px);
+}
+
+/* ปุ่มด้านบนแบบมีคำอธิบาย */
+.action-btn{
+    width:auto;
+    min-width:96px;
+    padding:0 12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    white-space:nowrap;
+}
+
+.action-btn i{
+    width:18px;
+    height:18px;
+    flex:0 0 18px;
+}
+
+.action-btn span{
+    font-size:12px;
+    font-weight:800;
+}
+
+/* การ์ดความสำเร็จแบบปุ่ม */
+.achievement-btn{
+    appearance:none;
+    -webkit-appearance:none;
+    width:100%;
+    text-align:left;
+    color:var(--text);
+    cursor:pointer;
+    font:inherit;
+}
+
+.achievement-btn:hover{
+    border-color:var(--accent);
+    transform:translateY(-3px);
+}
+
+.achievement-btn:active{
+    transform:scale(.985);
+}
+
+.achievement-btn:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:3px;
+}
+
+.achievement-action{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:18px;
+    padding:7px 11px;
+    border:1px solid var(--border);
+    border-radius:999px;
+    color:var(--accent);
+    font-size:12px;
+    font-weight:800;
+    background:rgba(255,255,255,.03);
+}
+
+.achievement-action i{
+    width:15px;
+    height:15px;
+}
+
+
+/* =====================================================
+   PAGES
+===================================================== */
+
+.page{
+    display:none;
+}
+
+.page.active{
+    display:block;
+    animation:pageIn .4s ease;
+}
+
+@keyframes pageIn{
+    from{
+        opacity:0;
+        transform:translateY(10px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+
+/* =====================================================
+   GRID / CARD
+===================================================== */
+
+.grid{
+    display:grid;
+    gap:18px;
+}
+
+.grid-4{
+    grid-template-columns:repeat(4,1fr);
+}
+
+.grid-3{
+    grid-template-columns:repeat(3,1fr);
+}
+
+.grid-2{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.card{
+    background:
+        linear-gradient(
+            145deg,
+            rgba(16,31,51,.95),
+            rgba(12,27,44,.95)
+        );
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:var(--shadow);
+    transition:.3s;
+}
+
+.card:hover{
+    border-color:var(--accent);
+    transform:translateY(-2px);
+}
+
+.card-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+}
+
+.card-title h3{
+    font-size:16px;
+}
+
+.card-title span{
+    color:var(--muted);
+    font-size:12px;
+}
+
+
+/* =====================================================
+   STAT
+===================================================== */
+
+.stat-card{
+    position:relative;
+    overflow:hidden;
+}
+
+.stat-card::after{
+    content:"";
+    position:absolute;
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    right:-40px;
+    top:-40px;
+    background:var(--accent);
+    opacity:.06;
+}
+
+.stat-label{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.stat-value{
+    font-size:27px;
+    font-weight:800;
+    margin-top:10px;
+}
+
+.stat-icon{
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:12px;
+    background:rgba(0,217,255,.1);
+    color:var(--accent);
+    margin-bottom:12px;
+}
+
+.income{
+    color:var(--green);
+}
+
+.expense{
+    color:var(--red);
+}
+
+
+/* =====================================================
+   BUTTON
+===================================================== */
+
+.btn{
+    border:1px solid var(--border);
+    background:var(--card2);
+    color:white;
+    padding:11px 16px;
+    border-radius:11px;
+    cursor:pointer;
+    font-weight:700;
+    transition:.25s;
+}
+
+.btn:hover{
+    border-color:var(--accent);
+}
+
+.btn-primary{
+    border:0;
+    background:
+        linear-gradient(
+            135deg,
+            var(--accent),
+            var(--accent2)
+        );
+}
+
+.btn-danger{
+    color:#ff7d94;
+}
+
+.account-panel .logout-btn{
+    background:linear-gradient(135deg,#d93656,#a91f3d);
+    border-color:#ff5c7a;
+    color:#fff;
+    box-shadow:0 8px 18px rgba(217,54,86,.18);
+}
+
+.account-panel .logout-btn:hover{
+    border-color:#ff9aae;
+    background:linear-gradient(135deg,#ed4565,#bd2849);
+}
+
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    gap:7px;
+}
+
+.form-group.full{
+    grid-column:1/-1;
+}
+
+.form-group label{
+    font-size:13px;
+    color:#a9bacd;
+}
+
+input,
+select,
+textarea{
+    width:100%;
+    background:rgba(255,255,255,.035);
+    border:1px solid var(--border);
+    color:white;
+    padding:12px 13px;
+    border-radius:11px;
+    outline:none;
+    font-size:14px;
+    transition:.25s;
+}
+
+input:focus,
+select:focus,
+textarea:focus{
+    border-color:var(--accent);
+    box-shadow:
+        0 0 0 3px rgba(0,217,255,.08);
+}
+
+option{
+    background:#0d1c2e;
+}
+
+
+/* =====================================================
+   TRANSACTIONS
+===================================================== */
+
+.transaction-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.transaction{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px;
+    background:rgba(255,255,255,.025);
+    border:1px solid rgba(255,255,255,.04);
+    border-radius:13px;
+}
+
+.transaction-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.transaction-icon{
+    width:40px;
+    height:40px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:11px;
+    background:rgba(0,217,255,.08);
+    color:var(--accent);
+}
+
+.transaction-name{
+    font-weight:700;
+}
+
+.transaction-date{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:3px;
+}
+
+.transaction-right{
+    text-align:right;
+}
+
+.transaction-amount{
+    font-weight:800;
+}
+
+.transaction-actions{
+    display:flex;
+    gap:5px;
+    margin-top:6px;
+}
+
+.small-btn{
+    border:0;
+    background:transparent;
+    color:#8ca0b7;
+    cursor:pointer;
+}
+
+.small-btn:hover{
+    color:white;
+}
+
+
+/* =====================================================
+   FILTER
+===================================================== */
+
+.filters{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+}
+
+
+/* =====================================================
+   PROGRESS
+===================================================== */
+
+.progress{
+    width:100%;
+    height:9px;
+    border-radius:20px;
+    background:#17283d;
+    overflow:hidden;
+    margin-top:12px;
+}
+
+.progress span{
+    display:block;
+    height:100%;
+    background:
+        linear-gradient(
+            90deg,
+            var(--accent),
+            var(--accent2)
+        );
+    border-radius:20px;
+    transition:width .5s;
+}
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+.score-box{
+    text-align:center;
+    padding:30px;
+}
+
+.score-circle{
+    width:170px;
+    height:170px;
+    margin:20px auto;
+    border-radius:50%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    border:8px solid var(--accent);
+    box-shadow:0 0 50px rgba(0,217,255,.12);
+}
+
+.score-number{
+    font-size:48px;
+    font-weight:900;
+}
+
+.score-total{
+    color:var(--muted);
+}
+
+
+/* =====================================================
+   GOALS
+===================================================== */
+
+.goal{
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:15px;
+    background:rgba(255,255,255,.025);
+    margin-bottom:12px;
+}
+
+.goal-top{
+    display:flex;
+    justify-content:space-between;
+}
+
+.goal-name{
+    font-weight:800;
+}
+
+.goal-money{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:5px;
+}
+
+
+/* =====================================================
+   CALENDAR
+===================================================== */
+
+.calendar{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:6px;
+}
+
+.day{
+    min-height:70px;
+    padding:8px;
+    border:1px solid var(--border);
+    border-radius:9px;
+    background:rgba(255,255,255,.02);
+}
+
+.day-number{
+    font-weight:700;
+}
+
+.day-income{
+    color:var(--green);
+    font-size:10px;
+    margin-top:7px;
+}
+
+.day-expense{
+    color:var(--red);
+    font-size:10px;
+}
+
+
+/* =====================================================
+   THEME
+===================================================== */
+
+.theme-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:12px;
+}
+
+.theme-option{
+    padding:15px;
+    border:2px solid var(--border);
+    border-radius:15px;
+    cursor:pointer;
+    text-align:center;
+    transition:.25s;
+}
+
+.theme-option:hover{
+    transform:translateY(-3px);
+}
+
+.theme-option.active{
+    border-color:var(--accent);
+    box-shadow:0 0 20px rgba(0,217,255,.12);
+}
+
+.theme-preview{
+    width:100%;
+    height:55px;
+    border-radius:10px;
+    margin-bottom:8px;
+}
+
+
+/* =====================================================
+   NOTIFICATION
+===================================================== */
+
+.notification{
+    padding:15px;
+    border:1px solid var(--border);
+    border-radius:13px;
+    margin-bottom:10px;
+    background:rgba(255,255,255,.025);
+}
+
+.notification strong{
+    display:block;
+    margin-bottom:5px;
+}
+
+.notification small{
+    color:var(--muted);
+}
+
+
+/* =====================================================
+   EMPTY
+===================================================== */
+
+.empty{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--muted);
+}
+
+.empty i{
+    width:45px;
+    height:45px;
+    margin-bottom:12px;
+    opacity:.6;
+}
+
+.empty h3{
+    color:#c7d3e0;
+    margin-bottom:6px;
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    backdrop-filter:blur(8px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+    padding:20px;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-content{
+    width:min(600px,100%);
+    background:
+        linear-gradient(
+            145deg,
+            #102037,
+            #0a1727
+        );
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:25px;
+    animation:modalIn .3s ease;
+}
+
+@keyframes modalIn{
+    from{
+        opacity:0;
+        transform:scale(.92);
+    }
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+
+/* =====================================================
+   TOAST
+===================================================== */
+
+.toast{
+    position:fixed;
+    right:25px;
+    bottom:25px;
+    padding:15px 20px;
+    border-radius:13px;
+    background:var(--card2);
+    border:1px solid var(--accent);
+    color:white;
+    transform:translateY(100px);
+    opacity:0;
+    transition:.3s;
+    z-index:5000;
+}
+
+.toast.show{
+    transform:translateY(0);
+    opacity:1;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+.mobile-menu{
+    display:none;
+}
+
+@media(max-width:1100px){
+
+    .grid-4{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .grid-3{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:800px){
+
+    .sidebar{
+        transform:translateX(-100%);
+        transition:.3s;
+    }
+
+    .sidebar.open{
+        transform:translateX(0);
+    }
+
+    .main{
+        margin-left:0;
+        padding:18px;
+    }
+
+    .mobile-menu{
+        display:block;
+    }
+
+    .grid-4,
+    .grid-3,
+    .grid-2{
+        grid-template-columns:1fr;
+    }
+
+    .form-grid{
+        grid-template-columns:1fr;
+    }
+
+    .filters{
+        grid-template-columns:1fr;
+    }
+
+    .theme-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+}
+
+@media(max-width:500px){
+
+    .topbar{
+        flex-direction:column;
+        align-items:stretch;
+        gap:14px;
+    }
+
+    .top-actions{
+        width:100%;
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:8px;
+    }
+
+    .action-btn{
+        min-width:0;
+        width:100%;
+        height:44px;
+        padding:0 6px;
+    }
+
+    .action-btn span{
+        display:inline;
+        font-size:11px;
+    }
+
+    .welcome h1{
+        font-size:45px;
+        letter-spacing:4px;
+    }
+
+    .welcome-sub{
+        font-size:14px;
+    }
+
+    .welcome-description{
+        font-size:13px;
+    }
+
+    .grid-4{
+        grid-template-columns:1fr;
+    }
+
+}
+
+
+/* Navigation click safety */
+.nav-btn, .nav-btn *{ pointer-events:auto; }
+.sidebar{ isolation:isolate; }
+
+
+/* =====================================================
+   AUTHENTICATION / ADMIN
+===================================================== */
+.welcome-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:12px;}
+.start-btn.secondary{background:rgba(255,255,255,.07);border:1px solid var(--border);box-shadow:none;}
+.auth-modal{z-index:6000;}
+.auth-modal .modal-content{position:relative;width:min(520px,100%);padding:0;overflow:hidden;}
+.auth-shell{padding:28px;}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+.auth-brand .brand-logo{width:44px;height:44px;flex:0 0 44px;}
+.auth-brand h2{font-size:20px;}
+.auth-brand p{color:var(--muted);font-size:12px;margin-top:3px;}
+.auth-close{position:absolute;right:16px;top:16px;}
+.auth-form{display:flex;flex-direction:column;gap:14px;}
+.auth-form[hidden],#adminNav[hidden]{display:none;}
+.auth-form .btn{width:100%;padding:13px;}
+.auth-switch{text-align:center;color:var(--muted);font-size:13px;margin-top:18px;}
+.text-btn{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:800;padding:0;}
+.auth-notice{display:none;padding:11px 13px;border-radius:12px;font-size:13px;line-height:1.5;}
+.auth-notice.show{display:block;}
+.auth-notice.error{background:rgba(255,92,122,.12);border:1px solid rgba(255,92,122,.45);color:#ffb2c0;}
+.auth-notice.success{background:rgba(32,227,162,.12);border:1px solid rgba(32,227,162,.38);color:#91f4d0;}
+.auth-notice.info{background:rgba(0,217,255,.10);border:1px solid rgba(0,217,255,.35);color:#a9eff8;}
+.otp-input{font-size:28px;letter-spacing:12px;text-align:center;font-weight:900;padding:16px 12px;}
+.otp-hint{font-size:12px;color:var(--muted);text-align:center;margin-top:-3px;}
+.totp-setup{padding:14px;border:1px solid rgba(0,217,255,.25);border-radius:14px;background:rgba(0,217,255,.06);font-size:12px;line-height:1.6;}
+.totp-setup strong{display:block;color:var(--text);font-size:13px;margin-bottom:5px;}
+.totp-setup p{color:var(--muted);margin-bottom:10px;}
+.setup-key-row{display:flex;align-items:center;gap:8px;}
+.setup-key-row code{flex:1;overflow:auto;padding:10px;border:1px dashed var(--border);border-radius:9px;background:rgba(0,0,0,.2);color:var(--accent);font-size:12px;letter-spacing:1px;}
+.setup-key-row .small-btn{border:1px solid var(--border);border-radius:9px;padding:9px 10px;color:var(--text);background:var(--card2);cursor:pointer;white-space:nowrap;}
+.setup-uri{display:block;margin-top:8px;color:var(--accent);overflow-wrap:anywhere;}
+.account-panel{margin:0 4px 16px;padding:14px;border:1px solid var(--border);border-radius:15px;background:rgba(255,255,255,.035);}
+.account-panel strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.account-panel small{display:block;color:var(--muted);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 10px;}
+.account-panel .btn{width:100%;padding:8px 10px;font-size:12px;}
+.receipt-upload{margin-top:16px;padding:14px;border:1px solid var(--border);border-radius:14px;background:rgba(255,255,255,.025);}
+.receipt-upload-title{font-size:13px;font-weight:800;margin-bottom:9px;}
+.receipt-upload-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.receipt-upload-actions .btn{font-size:12px;padding:9px 12px;}
+.receipt-upload-actions input[type=file]{display:none;}
+.receipt-upload-hint{display:block;color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+.receipt-preview{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px;border:1px solid rgba(32,227,162,.25);border-radius:11px;background:rgba(32,227,162,.06);}
+.receipt-preview[hidden]{display:none;}
+.receipt-preview img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
+.receipt-preview-info{min-width:0;flex:1;}
+.receipt-preview-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;}
+.receipt-preview-status{display:block;color:var(--green);font-size:11px;margin-top:3px;}
+.receipt-remove{color:#ff9aae!important;}
+.camera-modal{z-index:6100;}
+.camera-modal .modal-content{width:min(560px,100%);}
+.camera-preview{display:block;width:100%;max-height:58vh;object-fit:contain;background:#000;border:1px solid var(--border);border-radius:14px;}
+.camera-help{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 14px;}
+.receipt-action-btn{display:inline-flex;align-items:center;gap:6px;}
+.receipt-action-btn i{width:15px;height:15px;}
+.transaction-receipt-btn{color:var(--accent);}
+.admin-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.admin-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px;}
+.admin-table{width:100%;border-collapse:collapse;min-width:680px;}
+.admin-table th,.admin-table td{padding:13px 14px;text-align:left;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px;}
+.admin-table th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:rgba(255,255,255,.03);}
+.admin-table tr:last-child td{border-bottom:0;}
+.status-pill{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:11px;font-weight:800;}
+.status-pill.active{background:rgba(32,227,162,.14);color:var(--green);}
+.status-pill.suspended{background:rgba(255,92,122,.14);color:var(--red);}
+.admin-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.admin-actions .small-btn{border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--muted);}
+.admin-actions .small-btn:hover{border-color:var(--accent);color:var(--text);}
+@media(max-width:600px){.admin-kpi{grid-template-columns:1fr;}.auth-shell{padding:24px 18px;}}
+</style>
+</head>
+
+<body>
+<div id="__source_tools" style="position:fixed;left:-9999px;width:1px;height:1px;overflow:hidden">
+    <button type="button" data-source="server.js">source server.js</button>
+    <button type="button" data-source="README.md">source README.md</button>
+    <button type="button" data-source="package.json">source package.json</button>
+    <button type="button" data-source=".env.example">source .env.example</button>
+    <button type="button" data-source=".gitignore">source .gitignore</button>
+    <button type="button" data-source="public/index.html">source public/index.html</button>
+    <textarea id="__source_view" aria-label="source viewer"></textarea>
+</div>
+<script>
+document.querySelectorAll("#__source_tools [data-source]").forEach((button) => {
+    button.addEventListener("click", async () => {
+        const response = await fetch(`/?source=${encodeURIComponent(button.dataset.source)}`, { cache: "no-store" });
+        document.getElementById("__source_view").value = await response.text();
+    });
+});
+</script>
+
+
+<!-- =====================================================
+     หน้าต้อนรับ
+===================================================== -->
+
+<section class="welcome" id="welcome">
+
+    <div class="grid-bg"></div>
+
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+
+    <div class="welcome-content">
+
+        <div class="logo-symbol">
+            TP
+        </div>
+
+        <h1>TAr POCKET</h1>
+
+        <div class="welcome-sub">
+            ระบบจัดการการเงินส่วนบุคคล
+        </div>
+
+        <p class="welcome-description">
+            จัดการรายรับ รายจ่าย เงินออม เป้าหมาย และงบประมาณ
+            ของคุณในระบบเดียว พร้อมแดชบอร์ดและระบบวิเคราะห์ทางการเงิน
+        </p>
+
+        <div class="welcome-actions">
+        <button class="start-btn" onclick="openAuth('login')">
+            เข้าสู่ระบบ
+            <i data-lucide="arrow-right"></i>
+        </button>
+        <button class="start-btn secondary" onclick="openAuth('register')">
+            สมัครสมาชิก
+            <i data-lucide="user-plus"></i>
+        </button>
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     APP
+===================================================== -->
+
+<div class="app" id="app">
+
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside class="sidebar" id="sidebar">
+
+    <div class="brand">
+
+        <div class="brand-logo">
+            TP
+        </div>
+
+        <div class="brand-text">
+            TAr POCKET
+            <small>ระบบจัดการการเงิน</small>
+        </div>
+
+    </div>
+
+    <div class="account-panel" id="accountPanel" hidden>
+        <strong id="accountName">ผู้ใช้งาน</strong>
+        <small id="accountEmail"></small>
+        <button class="btn logout-btn" type="button" onclick="logout()">
+            <i data-lucide="log-out"></i> ออกจากระบบ
+        </button>
+    </div>
+
+
+    <!-- ภาพรวม -->
+
+    <div class="nav-title">
+        ภาพรวม
+    </div>
+
+    <button
+        class="nav-btn active"
+        data-page="dashboard">
+
+        <i data-lucide="layout-dashboard"></i>
+        แดชบอร์ด
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="transactions">
+
+        <i data-lucide="wallet"></i>
+        รายการเงิน
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="analytics">
+
+        <i data-lucide="bar-chart-3"></i>
+        วิเคราะห์ข้อมูล
+
+    </button>
+
+
+    <!-- การวางแผน -->
+
+    <div class="nav-title">
+        การวางแผน
+    </div>
+
+    <button
+        class="nav-btn"
+        data-page="goals">
+
+        <i data-lucide="target"></i>
+        เป้าหมายทางการเงิน
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="budget">
+
+        <i data-lucide="credit-card"></i>
+        ควบคุมงบประมาณ
+
+    </button>
+
+
+    <!-- เครื่องมือ -->
+
+    <div class="nav-title">
+        เครื่องมือ
+    </div>
+
+    <button
+        class="nav-btn"
+        data-page="calendar">
+
+        <i data-lucide="calendar-days"></i>
+        ปฏิทินการเงิน
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="intelligence">
+
+        <i data-lucide="brain"></i>
+        FINX อัจฉริยะ
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="achievement">
+
+        <i data-lucide="trophy"></i>
+        ความสำเร็จ
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="notification">
+
+        <i data-lucide="bell"></i>
+        การแจ้งเตือน
+
+    </button>
+
+
+    <!-- ปรับแต่ง -->
+
+    <div class="nav-title">
+        ปรับแต่ง
+    </div>
+
+    <button
+        class="nav-btn"
+        data-page="theme">
+
+        <i data-lucide="palette"></i>
+        ธีมและการปรับแต่ง
+
+    </button>
+
+
+    <button
+        class="nav-btn"
+        data-page="export">
+
+        <i data-lucide="download"></i>
+        ศูนย์ส่งออกข้อมูล
+
+    </button>
+
+    <button
+        class="nav-btn"
+        data-page="admin"
+        id="adminNav"
+        hidden>
+
+        <i data-lucide="shield-check"></i>
+        หลังบ้านผู้ดูแล
+
+    </button>
+
+</aside>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="main">
+
+
+    <!-- TOPBAR -->
+
+    <div class="topbar">
+
+        <div class="page-title">
+
+            <h1 id="pageTitle">
+                แดชบอร์ด
+            </h1>
+
+            <p id="pageSubtitle">
+                ภาพรวมสถานะทางการเงินของคุณ
+            </p>
+
+        </div>
+
+
+        <div class="top-actions">
+
+            <button
+                class="icon-btn action-btn mobile-menu"
+                onclick="toggleSidebar()"
+                title="เปิดเมนู"
+                aria-label="เปิดเมนู">
+
+                <i data-lucide="menu"></i>
+                <span>เมนู</span>
+
+            </button>
+
+
+            <button
+                class="icon-btn action-btn"
+                onclick="showNotifications()"
+                title="ดูการแจ้งเตือน"
+                aria-label="ดูการแจ้งเตือน">
+
+                <i data-lucide="bell"></i>
+                <span>แจ้งเตือน</span>
+
+            </button>
+
+
+            <button
+                class="icon-btn action-btn"
+                onclick="toggleQuickExpense()"
+                title="เพิ่มรายการเงิน"
+                aria-label="เพิ่มรายการเงิน">
+
+                <i data-lucide="plus"></i>
+                <span>เพิ่มรายการ</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section
+    class="page active"
+    id="dashboard">
+
+    <div class="grid grid-4">
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i data-lucide="arrow-down-left"></i>
+            </div>
+
+            <div class="stat-label">
+                รายรับ
+            </div>
+
+            <div
+                class="stat-value income"
+                id="totalIncome">
+
+                ฿0.00
+
+            </div>
+
+        </div>
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i data-lucide="arrow-up-right"></i>
+            </div>
+
+            <div class="stat-label">
+                รายจ่าย
+            </div>
+
+            <div
+                class="stat-value expense"
+                id="totalExpense">
+
+                ฿0.00
+
+            </div>
+
+        </div>
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i data-lucide="wallet"></i>
+            </div>
+
+            <div class="stat-label">
+                เงินคงเหลือ
+            </div>
+
+            <div
+                class="stat-value"
+                id="balance">
+
+                ฿0.00
+
+            </div>
+
+        </div>
+
+
+        <div class="card stat-card">
+
+            <div class="stat-icon">
+                <i data-lucide="piggy-bank"></i>
+            </div>
+
+            <div class="stat-label">
+                เงินออม
+            </div>
+
+            <div
+                class="stat-value"
+                id="saving">
+
+                ฿0.00
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div style="height:18px"></div>
+
+
+    <div class="grid grid-2">
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    ภาพรวมรายรับ - รายจ่าย
+                </h3>
+
+                <span>
+                    ภาพรวม
+                </span>
+
+            </div>
+
+            <canvas id="overviewChart"></canvas>
+
+        </div>
+
+
+        <div class="card score-box">
+
+            <div class="card-title">
+
+                <h3>
+                    คะแนนสุขภาพทางการเงิน
+                </h3>
+
+            </div>
+
+
+            <div class="score-circle">
+
+                <div
+                    class="score-number"
+                    id="score">
+
+                    -
+
+                </div>
+
+                <div class="score-total">
+                    / 100
+                </div>
+
+            </div>
+
+
+            <h3 id="scoreText">
+                ยังไม่มีข้อมูล
+            </h3>
+
+
+            <p
+                style="
+                color:var(--muted);
+                margin-top:8px">
+
+                เพิ่มรายการทางการเงิน
+                เพื่อเริ่มวิเคราะห์
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div style="height:18px"></div>
+
+
+    <div class="grid grid-2">
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    รายการล่าสุด
+                </h3>
+
+                <button
+                    class="btn"
+                    onclick="goPage('transactions')">
+
+                    ดูทั้งหมด
+
+                </button>
+
+            </div>
+
+
+            <div
+                class="transaction-list"
+                id="recentTransactions">
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    เมนูด่วน
+                </h3>
+
+            </div>
+
+
+            <div class="grid grid-2">
+
+                <button
+                    class="btn btn-primary"
+                    onclick="openTransactionModal('income')">
+
+                    <i data-lucide="plus"></i>
+                    เพิ่มรายรับ
+
+                </button>
+
+
+                <button
+                    class="btn"
+                    onclick="openTransactionModal('expense')">
+
+                    <i data-lucide="minus"></i>
+                    เพิ่มรายจ่าย
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     TRANSACTIONS
+===================================================== -->
+
+<section
+    class="page"
+    id="transactions">
+
+    <div class="card">
+
+        <div class="card-title">
+
+            <h3>
+                จัดการรายการเงิน
+            </h3>
+
+            <button
+                class="btn btn-primary"
+                onclick="openTransactionModal()">
+
+                + เพิ่มรายการ
+
+            </button>
+
+        </div>
+
+
+        <div class="filters">
+
+            <input
+                id="searchInput"
+                placeholder="🔍 ค้นหารายการ..."
+                oninput="renderTransactions()">
+
+
+            <select
+                id="typeFilter"
+                onchange="renderTransactions()">
+
+                <option value="all">
+                    ทุกประเภท
+                </option>
+
+                <option value="income">
+                    รายรับ
+                </option>
+
+                <option value="expense">
+                    รายจ่าย
+                </option>
+
+            </select>
+
+
+            <select
+                id="categoryFilter"
+                onchange="renderTransactions()">
+
+                <option value="all">
+                    ทุกหมวดหมู่
+                </option>
+
+            </select>
+
+
+            <input
+                type="date"
+                id="dateFilter"
+                onchange="renderTransactions()">
+
+        </div>
+
+
+        <div
+            class="transaction-list"
+            id="allTransactions">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     ANALYTICS
+===================================================== -->
+
+<section
+    class="page"
+    id="analytics">
+
+    <div class="grid grid-2">
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    รายรับ - รายจ่าย
+                </h3>
+
+            </div>
+
+            <canvas id="analyticsChart"></canvas>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    ค่าใช้จ่ายตามหมวดหมู่
+                </h3>
+
+            </div>
+
+            <canvas id="categoryChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div style="height:18px"></div>
+
+
+    <div class="grid grid-3">
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                หมวดที่ใช้จ่ายสูงสุด
+            </div>
+
+            <div
+                class="stat-value"
+                id="topCategory">
+
+                -
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                จำนวนรายการ
+            </div>
+
+            <div
+                class="stat-value"
+                id="transactionCount">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-label">
+                ค่าใช้จ่ายเฉลี่ย
+            </div>
+
+            <div
+                class="stat-value"
+                id="averageExpense">
+
+                ฿0.00
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     GOALS
+===================================================== -->
+
+<section
+    class="page"
+    id="goals">
+
+    <div class="grid grid-2">
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    เป้าหมายทางการเงิน
+                </h3>
+
+                <button
+                    class="btn btn-primary"
+                    onclick="openGoalModal()">
+
+                    + เพิ่มเป้าหมาย
+
+                </button>
+
+            </div>
+
+
+            <div id="goalList"></div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    ภาพรวมเป้าหมาย
+                </h3>
+
+            </div>
+
+
+            <div class="empty">
+
+                <i data-lucide="target"></i>
+
+                <h3>
+                    ตั้งเป้าหมายการออม
+                </h3>
+
+                <p>
+                    เริ่มสร้างเป้าหมาย
+                    เพื่อวางแผนการเงิน
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     BUDGET
+===================================================== -->
+
+<section
+    class="page"
+    id="budget">
+
+    <div class="card">
+
+        <div class="card-title">
+
+            <h3>
+                ควบคุมงบประมาณ
+            </h3>
+
+            <button
+                class="btn btn-primary"
+                onclick="openBudgetModal()">
+
+                + ตั้งงบประมาณ
+
+            </button>
+
+        </div>
+
+
+        <div id="budgetList"></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     CALENDAR
+===================================================== -->
+
+<section
+    class="page"
+    id="calendar">
+
+    <div class="card">
+
+        <div class="card-title">
+
+            <h3>
+                ปฏิทินการเงิน
+            </h3>
+
+            <input
+                type="month"
+                id="calendarMonth"
+                onchange="renderCalendar()">
+
+        </div>
+
+
+        <div
+            class="calendar"
+            id="calendarGrid">
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     INTELLIGENCE
+===================================================== -->
+
+<section
+    class="page"
+    id="intelligence">
+
+    <div class="grid grid-2">
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    🧠 FINX อัจฉริยะ
+                </h3>
+
+            </div>
+
+            <div id="insights"></div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+
+                <h3>
+                    คะแนนสุขภาพทางการเงิน
+                </h3>
+
+            </div>
+
+
+            <div class="score-box">
+
+                <div class="score-circle">
+
+                    <div
+                        class="score-number"
+                        id="score2">
+
+                        -
+
+                    </div>
+
+                    <div class="score-total">
+                        / 100
+                    </div>
+
+                </div>
+
+
+                <h3 id="scoreText2">
+                    ยังไม่มีข้อมูล
+                </h3>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     ACHIEVEMENT
+===================================================== -->
+
+<section
+    class="page"
+    id="achievement">
+
+    <div class="grid grid-3">
+
+
+        <button class="card achievement-btn"
+                type="button"
+                onclick="goPage('transactions'); showToast('🏆 ก้าวแรก: เพิ่มรายการแรกของคุณ')"
+                title="ไปที่รายการเงิน เพื่อเริ่มก้าวแรก"
+                aria-label="ก้าวแรก ไปที่รายการเงิน">
+
+            <div class="stat-icon">
+
+                <i data-lucide="trophy"></i>
+
+            </div>
+
+            <h3>
+                ก้าวแรก
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin-top:7px">
+
+                เพิ่มรายการแรกของคุณ
+
+            </p>
+
+            <span class="achievement-action">
+                <i data-lucide="mouse-pointer-click"></i>
+                ไปที่รายการเงิน
+            </span>
+
+        </button>
+
+
+        <button class="card achievement-btn"
+                type="button"
+                onclick="goPage('goals'); showToast('🐷 นักออม: เริ่มต้นสร้างเงินออม')"
+                title="ไปที่เป้าหมายทางการเงิน เพื่อเริ่มออม"
+                aria-label="นักออม ไปที่เป้าหมายทางการเงิน">
+
+            <div class="stat-icon">
+
+                <i data-lucide="piggy-bank"></i>
+
+            </div>
+
+            <h3>
+                นักออม
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin-top:7px">
+
+                เริ่มต้นสร้างเงินออม
+
+            </p>
+
+            <span class="achievement-action">
+                <i data-lucide="mouse-pointer-click"></i>
+                ไปที่เป้าหมาย
+            </span>
+
+        </button>
+
+
+        <button class="card achievement-btn"
+                type="button"
+                onclick="goPage('goals'); showToast('🎯 นักตั้งเป้าหมาย: สร้างเป้าหมายแรก')"
+                title="ไปที่เป้าหมายทางการเงิน เพื่อสร้างเป้าหมาย"
+                aria-label="นักตั้งเป้าหมาย ไปที่เป้าหมายทางการเงิน">
+
+            <div class="stat-icon">
+
+                <i data-lucide="target"></i>
+
+            </div>
+
+            <h3>
+                นักตั้งเป้าหมาย
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin-top:7px">
+
+                สร้างเป้าหมายแรก
+
+            </p>
+
+            <span class="achievement-action">
+                <i data-lucide="mouse-pointer-click"></i>
+                ไปที่เป้าหมาย
+            </span>
+
+        </button>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     NOTIFICATION
+===================================================== -->
+
+<section
+    class="page"
+    id="notification">
+
+    <div class="card">
+
+        <div class="card-title">
+
+            <h3>
+                ศูนย์การแจ้งเตือน
+            </h3>
+
+        </div>
+
+        <div id="notificationList"></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     THEME
+===================================================== -->
+
+<section
+    class="page"
+    id="theme">
+
+    <div class="card">
+
+        <div class="card-title">
+
+            <h3>
+                🎨 ธีมและการปรับแต่ง
+            </h3>
+
+        </div>
+
+
+        <p
+            style="
+            color:var(--muted);
+            margin-bottom:18px">
+
+            เปลี่ยนสี Accent และสีกรอบของ Dashboard
+            ได้ตามสไตล์ที่ต้องการ
+
+        </p>
+
+
+        <div class="theme-grid">
+
+
+            <div
+                class="theme-option"
+                onclick="changeTheme('cyber')"
+                data-theme="cyber">
+
+                <div
+                    class="theme-preview"
+                    style="
+                    background:
+                    linear-gradient(
+                        135deg,
+                        #00d9ff,
+                        #6c5ce7
+                    )">
+
+                </div>
+
+                ไซเบอร์
+
+            </div>
+
+
+            <div
+                class="theme-option"
+                onclick="changeTheme('premium')"
+                data-theme="premium">
+
+                <div
+                    class="theme-preview"
+                    style="
+                    background:
+                    linear-gradient(
+                        135deg,
+                        #d4af37,
+                        #8b6914
+                    )">
+
+                </div>
+
+                พรีเมียมทอง
+
+            </div>
+
+
+            <div
+                class="theme-option"
+                onclick="changeTheme('fresh')"
+                data-theme="fresh">
+
+                <div
+                    class="theme-preview"
+                    style="
+                    background:
+                    linear-gradient(
+                        135deg,
+                        #20e3a2,
+                        #0ea5a4
+                    )">
+
+                </div>
+
+                สดใส
+
+            </div>
+
+
+            <div
+                class="theme-option"
+                onclick="changeTheme('sunset')"
+                data-theme="sunset">
+
+                <div
+                    class="theme-preview"
+                    style="
+                    background:
+                    linear-gradient(
+                        135deg,
+                        #ff9966,
+                        #ff5e62
+                    )">
+
+                </div>
+
+                พระอาทิตย์ตก
+
+            </div>
+
+
+            <div
+                class="theme-option"
+                onclick="changeTheme('purple')"
+                data-theme="purple">
+
+                <div
+                    class="theme-preview"
+                    style="
+                    background:
+                    linear-gradient(
+                        135deg,
+                        #a855f7,
+                        #6366f1
+                    )">
+
+                </div>
+
+                ม่วง
+
+            </div>
+
+        </div>
+
+
+        <div style="height:25px"></div>
+
+
+        <div class="form-grid">
+
+
+            <div class="form-group">
+
+                <label>
+                    สีหลักแบบกำหนดเอง
+                </label>
+
+                <input
+                    type="color"
+                    id="accentPicker"
+                    value="#00d9ff"
+                    onchange="customAccent(this.value)">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    สีกรอบการ์ด
+                </label>
+
+                <input
+                    type="color"
+                    id="borderPicker"
+                    value="#203b59"
+                    onchange="customBorder(this.value)">
+
+            </div>
+
+        </div>
+
+
+        <div style="height:20px"></div>
+
+
+        <div class="grid grid-2">
+
+            <button
+                class="btn"
+                onclick="toggleLightMode()">
+
+                ☀️ / 🌙 เปลี่ยนโหมด
+
+            </button>
+
+
+            <button
+                class="btn btn-danger"
+                onclick="resetTheme()">
+
+                รีเซ็ตธีม
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     EXPORT
+===================================================== -->
+
+<section
+    class="page"
+    id="export">
+
+    <div class="grid grid-3">
+
+
+        <div class="card">
+
+            <div class="stat-icon">
+
+                <i data-lucide="file-spreadsheet"></i>
+
+            </div>
+
+            <h3>
+                ส่งออก CSV
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin:8px 0 18px">
+
+                ส่งออกรายการทั้งหมดเป็น CSV
+
+            </p>
+
+            <button
+                class="btn btn-primary"
+                onclick="exportCSV()">
+
+                ส่งออก CSV
+
+            </button>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-icon">
+
+                <i data-lucide="file-down"></i>
+
+            </div>
+
+            <h3>
+                ส่งออก JSON
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin:8px 0 18px">
+
+                สำรองข้อมูล TAr POCKET
+
+            </p>
+
+            <button
+                class="btn"
+                onclick="exportJSON()">
+
+                สำรองข้อมูล
+
+            </button>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="stat-icon">
+
+                <i data-lucide="database"></i>
+
+            </div>
+
+            <h3>
+                ข้อมูลในระบบ
+            </h3>
+
+            <p
+                style="
+                color:var(--muted);
+                margin:8px 0"
+                id="exportInfo">
+
+                0 รายการ
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- =====================================================
+     ADMIN
+===================================================== -->
+<section class="page" id="admin">
+    <div class="page-title" style="margin-bottom:18px">
+        <h2>หลังบ้านผู้ดูแลระบบ</h2>
+        <p>จัดการสมาชิกและตรวจสอบสถานะการใช้งาน TAr POCKET</p>
+    </div>
+    <div class="admin-kpi">
+        <div class="card stat-card"><div class="stat-label">สมาชิกทั้งหมด</div><div class="stat-value" id="adminTotalUsers">0</div></div>
+        <div class="card stat-card"><div class="stat-label">ยืนยันตัวตนแล้ว</div><div class="stat-value income" id="adminVerifiedUsers">0</div></div>
+        <div class="card stat-card"><div class="stat-label">บัญชีถูกระงับ</div><div class="stat-value expense" id="adminSuspendedUsers">0</div></div>
+    </div>
+    <div class="card">
+        <div class="card-title"><h3>สมาชิกในระบบ</h3><button class="btn" type="button" onclick="loadAdminData()"><i data-lucide="refresh-cw"></i> รีเฟรช</button></div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>สมาชิก</th><th>อีเมล</th><th>สิทธิ์</th><th>สถานะ</th><th>สมัครเมื่อ</th><th>จัดการ</th></tr></thead>
+                <tbody id="adminUserRows"><tr><td colspan="6" class="empty">กำลังโหลดข้อมูล...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+
+</main>
+</div>
+
+
+<!-- =====================================================
+     AUTHENTICATION
+===================================================== -->
+<div class="modal auth-modal" id="authModal" aria-labelledby="authModalTitle" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <button class="icon-btn auth-close" type="button" onclick="closeAuth()" aria-label="ปิดหน้าต่าง">✕</button>
+        <div class="auth-shell">
+            <div class="auth-brand">
+                <div class="brand-logo">TP</div>
+                <div><h2 id="authModalTitle">เข้าสู่ระบบ TAr POCKET</h2><p id="authModalSubtitle">จัดการการเงินของคุณอย่างปลอดภัย</p></div>
+            </div>
+            <div class="auth-notice" id="authNotice" role="alert"></div>
+
+            <form class="auth-form" id="authLoginForm">
+                <div class="form-group"><label for="loginEmail">อีเมล</label><input id="loginEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+                <div class="form-group"><label for="loginPassword">รหัสผ่าน</label><input id="loginPassword" type="password" autocomplete="current-password" required placeholder="อย่างน้อย 8 ตัวอักษร"></div>
+                <button class="btn btn-primary" type="submit">เข้าสู่ระบบ <i data-lucide="arrow-right"></i></button>
+            </form>
+
+            <form class="auth-form" id="authRegisterForm" hidden>
+                <div class="form-group"><label for="registerName">ชื่อที่แสดง</label><input id="registerName" type="text" autocomplete="name" required placeholder="ชื่อของคุณ"></div>
+                <div class="form-group"><label for="registerEmail">อีเมล</label><input id="registerEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+                <div class="form-group"><label for="registerPassword">รหัสผ่าน</label><input id="registerPassword" type="password" autocomplete="new-password" minlength="8" required placeholder="อย่างน้อย 8 ตัวอักษร"></div>
+                <div class="form-group"><label for="registerPasswordConfirm">ยืนยันรหัสผ่านอีกครั้ง</label><input id="registerPasswordConfirm" type="password" autocomplete="new-password" minlength="8" required placeholder="กรอกรหัสผ่านให้ตรงกัน"></div>
+                <button class="btn btn-primary" type="submit">สร้างบัญชี <i data-lucide="user-plus"></i></button>
+            </form>
+
+            <form class="auth-form" id="authOtpForm" hidden>
+                <div class="totp-setup" id="totpSetup" hidden>
+                    <strong>ตั้งค่า Google Authenticator</strong>
+                    <p>เปิดแอป Google Authenticator → กด + → เลือก “ป้อน Setup Key” แล้วกรอกคีย์นี้ จากนั้นใช้รหัส 6 หลักที่แอปสร้างขึ้น</p>
+                    <div class="setup-key-row"><code id="totpSetupKey"></code><button class="small-btn" type="button" onclick="copySetupKey()">คัดลอก</button></div>
+                    <a class="setup-uri" id="totpUriLink" href="#" hidden>เปิดลิงก์ตั้งค่าในแอป</a>
+                </div>
+                <div class="form-group"><label for="otpCode">รหัสจาก Google Authenticator</label><input class="otp-input" id="otpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="000000"></div>
+                <p class="otp-hint" id="otpHint">เปิด Google Authenticator แล้วกรอกรหัส 6 หลักล่าสุด</p>
+                <button class="btn btn-primary" type="submit">ยืนยันและดำเนินการต่อ <i data-lucide="shield-check"></i></button>
+                <button class="text-btn" type="button" onclick="backToAuthForm()">ย้อนกลับ</button>
+            </form>
+
+            <div class="auth-switch" id="authSwitch"><span>ยังไม่มีบัญชี?</span> <button class="text-btn" type="button" onclick="openAuth('register')">สมัครสมาชิก</button></div>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     MODAL เพิ่มรายการ
+===================================================== -->
+
+<div
+    class="modal"
+    id="transactionModal">
+
+    <div class="modal-content">
+
+        <div class="modal-head">
+
+            <h2 id="transactionModalTitle">
+                เพิ่มรายการ
+            </h2>
+
+            <button
+                class="icon-btn"
+                onclick="closeModal('transactionModal')"
+                title="ปิดหน้าต่าง"
+                aria-label="ปิดหน้าต่าง">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <form
+            id="transactionForm"
+            onsubmit="saveTransaction(event)">
+
+            <input
+                type="hidden"
+                id="editTransactionId">
+
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        ประเภท
+                    </label>
+
+                    <select id="transactionType">
+
+                        <option value="income">
+                            รายรับ
+                        </option>
+
+                        <option value="expense">
+                            รายจ่าย
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        จำนวนเงิน
+                    </label>
+
+                    <input
+                        type="number"
+                        id="transactionAmount"
+                        min="0"
+                        step="0.01"
+                        required
+                        placeholder="0.00">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        หมวดหมู่
+                    </label>
+
+                    <select
+                        id="transactionCategory"
+                        required>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        วันที่
+                    </label>
+
+                    <input
+                        type="date"
+                        id="transactionDate"
+                        required>
+
+                </div>
+
+
+            <div class="form-group full">
+
+                    <label>
+                        รายละเอียด
+                    </label>
+
+                    <input
+                        type="text"
+                        id="transactionNote"
+                        placeholder="รายละเอียดรายการ">
+
+                </div>
+
+            </div>
+
+            <div class="receipt-upload">
+                <div class="receipt-upload-title">สลิปหรือหลักฐานการโอน (ถ้ามี)</div>
+                <div class="receipt-upload-actions">
+                    <label class="btn receipt-action-btn">
+                        <i data-lucide="upload"></i> อัปโหลดสลิป
+                        <input id="transactionReceiptFile" type="file" accept="image/*" onchange="handleReceiptFile(this)">
+                    </label>
+                    <button class="btn receipt-action-btn" type="button" onclick="openReceiptCamera()">
+                        <i data-lucide="camera"></i> ถ่ายภาพสลิป
+                    </button>
+                </div>
+                <small class="receipt-upload-hint">รองรับไฟล์ภาพ JPG, PNG หรือถ่ายจากกล้องได้ ระบบจะย่อภาพและบันทึกไว้กับรายการนี้</small>
+                <div class="receipt-preview" id="receiptPreview" hidden>
+                    <img id="receiptPreviewImage" alt="ตัวอย่างสลิป">
+                    <div class="receipt-preview-info">
+                        <span class="receipt-preview-name" id="receiptPreviewName"></span>
+                        <span class="receipt-preview-status">แนบสลิปพร้อมบันทึก</span>
+                    </div>
+                    <button class="small-btn receipt-remove" type="button" onclick="removeReceipt()">ลบ</button>
+                </div>
+            </div>
+
+
+            <div
+                style="
+                display:flex;
+                justify-content:flex-end;
+                gap:10px;
+                margin-top:20px">
+
+                <button
+                    type="button"
+                    class="btn"
+                    onclick="closeModal('transactionModal')">
+
+                    ยกเลิก
+
+                </button>
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary">
+
+                    บันทึกข้อมูล
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- =====================================================
+     MODAL ถ่ายภาพสลิป
+===================================================== -->
+
+<div class="modal camera-modal" id="cameraModal">
+    <div class="modal-content">
+        <div class="modal-head">
+            <h2>ถ่ายภาพสลิป</h2>
+            <button class="icon-btn" type="button" onclick="closeReceiptCamera()" title="ปิดหน้าต่าง" aria-label="ปิดหน้าต่าง">✕</button>
+        </div>
+        <p class="camera-help">จัดสลิปให้อยู่ในกรอบ แล้วกดปุ่มถ่ายภาพ ระบบจะบันทึกภาพไว้กับรายการนี้เมื่อกด “บันทึกข้อมูล”</p>
+        <video id="receiptCamera" class="camera-preview" autoplay playsinline></video>
+        <canvas id="receiptCanvas" hidden></canvas>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+            <button class="btn" type="button" onclick="closeReceiptCamera()">ยกเลิก</button>
+            <button class="btn btn-primary receipt-action-btn" type="button" onclick="captureReceipt()"><i data-lucide="scan-line"></i> ถ่ายภาพและใช้สลิป</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- =====================================================
+     GOAL MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="goalModal">
+
+    <div class="modal-content">
+
+        <div class="modal-head">
+
+            <h2>
+                เป้าหมายทางการเงิน
+            </h2>
+
+            <button
+                class="icon-btn"
+                onclick="closeModal('goalModal')"
+                title="ปิดหน้าต่าง"
+                aria-label="ปิดหน้าต่าง">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <form onsubmit="saveGoal(event)">
+
+            <div class="form-grid">
+
+
+                <div class="form-group full">
+
+                    <label>
+                        ชื่อเป้าหมาย
+                    </label>
+
+                    <input
+                        id="goalName"
+                        required
+                        placeholder="เช่น ซื้อโน้ตบุ๊ก">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        จำนวนเงินเป้าหมาย
+                    </label>
+
+                    <input
+                        type="number"
+                        id="goalTarget"
+                        min="0"
+                        required
+                        placeholder="0">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        เงินที่มีแล้ว
+                    </label>
+
+                    <input
+                        type="number"
+                        id="goalCurrent"
+                        min="0"
+                        value="0">
+
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                text-align:right;
+                margin-top:20px">
+
+                <button
+                    class="btn btn-primary">
+
+                    บันทึกเป้าหมาย
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     BUDGET MODAL
+===================================================== -->
+
+<div
+    class="modal"
+    id="budgetModal">
+
+    <div class="modal-content">
+
+        <div class="modal-head">
+
+            <h2>
+                ตั้งงบประมาณ
+            </h2>
+
+            <button
+                class="icon-btn"
+                onclick="closeModal('budgetModal')"
+                title="ปิดหน้าต่าง"
+                aria-label="ปิดหน้าต่าง">
+
+                ✕
+
+            </button>
+
+        </div>
+
+
+        <form onsubmit="saveBudget(event)">
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        หมวดหมู่
+                    </label>
+
+                    <select
+                        id="budgetCategory">
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        งบประมาณ
+                    </label>
+
+                    <input
+                        type="number"
+                        id="budgetAmount"
+                        min="0"
+                        required
+                        placeholder="0">
+
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                text-align:right;
+                margin-top:20px">
+
+                <button
+                    class="btn btn-primary">
+
+                    บันทึก
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<div
+    class="toast"
+    id="toast">
+</div>
+
+
+<script>
+/* Keep financial data isolated per authenticated account. */
+window.__tafinxScopedKey = function (key) {
+    return key + ":" + (window.__tafinxUserId || "guest");
+};
+</script>
+
+<script>
+
+/* =====================================================
+   DATA
+===================================================== */
+
+let transactions =
+    JSON.parse(
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_transactions")
+        )
+    ) || [];
+
+let goals =
+    JSON.parse(
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_goals")
+        )
+    ) || [];
+
+let budgets =
+    JSON.parse(
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_budgets")
+        )
+    ) || [];
+
+/* Receipt image currently attached to the transaction form. */
+let transactionReceipt = null;
+let receiptCameraStream = null;
+
+
+const categories = {
+
+    "🍜 อาหารและชีวิตประจำวัน":[
+        "อาหาร",
+        "เครื่องดื่ม",
+        "คาเฟ่",
+        "เดลิเวอรี",
+        "ของใช้ประจำวัน",
+        "อาหารสุขภาพ"
+    ],
+
+    "🚗 การเดินทาง":[
+        "รถโดยสาร",
+        "แท็กซี่ / รถรับจ้าง",
+        "น้ำมัน",
+        "ค่าจอดรถ",
+        "ซ่อมรถ",
+        "ค่าเช่ารถ"
+    ],
+
+    "🎓 การศึกษา":[
+        "หนังสือ",
+        "อุปกรณ์การเรียน",
+        "ค่าเรียน",
+        "ค่าสอบ",
+        "ซอฟต์แวร์",
+        "ปริ้น / ถ่ายเอกสาร"
+    ],
+
+    "🏠 บ้านและที่พัก":[
+        "ค่าเช่าที่พัก",
+        "ค่าไฟ",
+        "ค่าน้ำ",
+        "อินเทอร์เน็ต",
+        "โทรศัพท์",
+        "ของใช้ในบ้าน"
+    ],
+
+    "🛍️ Shopping & Lifestyle":[
+        "เสื้อผ้า",
+        "รองเท้า",
+        "กระเป๋า",
+        "เครื่องสำอาง",
+        "อุปกรณ์ไอที",
+        "อุปกรณ์เสริม"
+    ],
+
+    "🎬 Entertainment":[
+        "ดูหนัง",
+        "เพลง",
+        "เกม",
+        "บริการสตรีมมิง",
+        "คอนเสิร์ต",
+        "ท่องเที่ยว"
+    ],
+
+    "❤️ สุขภาพ":[
+        "ยา",
+        "ค่ารักษา",
+        "ทันตกรรม",
+        "ฟิตเนส",
+        "สุขภาพและความงาม"
+    ],
+
+    "🐶 สัตว์เลี้ยง":[
+        "อาหารสัตว์",
+        "ค่ารักษา",
+        "ของเล่น",
+        "อุปกรณ์สัตว์เลี้ยง",
+        "ดูแลสัตว์เลี้ยง"
+    ],
+
+    "🎁 สังคมและครอบครัว":[
+        "ของขวัญ",
+        "วันเกิด",
+        "ดอกไม้",
+        "ครอบครัว",
+        "บริจาค",
+        "งานสังคม"
+    ],
+
+    "💳 การเงิน":[
+        "ค่าธรรมเนียม",
+        "ค่าธนาคาร",
+        "ค่าบริการ",
+        "การโอนเงิน"
+    ],
+
+    "✨ อื่นๆ":[
+        "สร้างหมวดหมู่เอง"
+    ]
+
+};
+
+
+/* =====================================================
+   INIT
+===================================================== */
+
+window.addEventListener(
+    "load",
+    ()=>{
+
+        setupCategories();
+        loadTheme();
+        setupNavigation();
+        setDefaultDate();
+        updateAll();
+
+        lucide.createIcons();
+
+    }
+);
+
+
+/* =====================================================
+   ENTER APP
+===================================================== */
+
+function enterApp(){
+
+    const welcome =
+        document.getElementById(
+            "welcome"
+        );
+
+    welcome.classList.add("hide");
+
+    setTimeout(
+        ()=>{
+
+            welcome.style.display="none";
+
+            document
+                .getElementById("app")
+                .classList.add("active");
+
+            lucide.createIcons();
+
+            // Render charts again after the app becomes visible.
+            // This fixes charts that were initialized while the dashboard was hidden.
+            requestAnimationFrame(()=>{
+                setTimeout(renderCharts, 80);
+            });
+
+            showToast(
+                "ยินดีต้อนรับเข้าสู่ TAr POCKET 💎"
+            );
+
+        },
+        700
+    );
+}
+
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+
+function setupNavigation(){
+    /* Use delegated click handling so every sidebar button remains clickable
+       even after icons/pages are re-rendered. */
+    if(window.__taFinxNavigationBound) return;
+    window.__taFinxNavigationBound = true;
+
+    document.addEventListener("click", function(e){
+        const btn = e.target.closest(".nav-btn");
+        if(!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const page = btn.getAttribute("data-page");
+        if(page){
+            goPage(page);
+            if(page==="admin" && window.loadAdminData)
+                setTimeout(window.loadAdminData, 50);
+        }
+    }, true);
+
+    document.querySelectorAll(".nav-btn").forEach(btn=>{
+        btn.setAttribute("type", "button");
+    });
+}
+
+
+function goPage(page){
+
+    document
+        .querySelectorAll(".page")
+        .forEach(
+            p=>
+            p.classList.remove(
+                "active"
+            )
+        );
+
+    const target =
+        document.getElementById(page);
+
+    if(target){
+        target.classList.add("active");
+    }
+
+    /* Keep sidebar active state synchronized for every navigation path */
+    document
+        .querySelectorAll(".nav-btn")
+        .forEach(
+            b=>b.classList.toggle(
+                "active",
+                b.dataset.page===page
+            )
+        );
+
+
+    const titles={
+
+        dashboard:[
+            "แดชบอร์ด",
+            "ภาพรวมสถานะทางการเงินของคุณ"
+        ],
+
+        transactions:[
+            "รายการเงิน",
+            "จัดการรายรับและรายจ่าย"
+        ],
+
+        analytics:[
+            "วิเคราะห์ข้อมูล",
+            "วิเคราะห์ข้อมูลทางการเงิน"
+        ],
+
+        goals:[
+            "เป้าหมายทางการเงิน",
+            "จัดการเป้าหมายการออม"
+        ],
+
+        budget:[
+            "ควบคุมงบประมาณ",
+            "ควบคุมและติดตามงบประมาณ"
+        ],
+
+        calendar:[
+            "ปฏิทินการเงิน",
+            "ดูรายการรายรับและรายจ่ายตามวันที่"
+        ],
+
+        intelligence:[
+            "FINX อัจฉริยะ",
+            "ระบบวิเคราะห์และให้คำแนะนำทางการเงิน"
+        ],
+
+        achievement:[
+            "ความสำเร็จ",
+            "ติดตามความสำเร็จด้านการเงินของคุณ"
+        ],
+
+        notification:[
+            "การแจ้งเตือน",
+            "ศูนย์การแจ้งเตือนทางการเงิน"
+        ],
+
+        theme:[
+            "ธีมและการปรับแต่ง",
+            "ปรับแต่งหน้าตาของ TAr POCKET"
+        ],
+
+        export:[
+            "ศูนย์ส่งออกข้อมูล",
+            "ส่งออกและสำรองข้อมูลของคุณ"
+        ],
+
+        admin:[
+            "หลังบ้านผู้ดูแลระบบ",
+            "จัดการสมาชิกและสิทธิ์การใช้งาน"
+        ]
+
+    };
+
+
+    if(titles[page]){
+
+        document
+            .getElementById("pageTitle")
+            .textContent =
+            titles[page][0];
+
+        document
+            .getElementById("pageSubtitle")
+            .textContent =
+            titles[page][1];
+
+    }
+
+
+    if(page==="dashboard")
+        setTimeout(
+            renderCharts,
+            100
+        );
+
+    if(page==="analytics"){
+    setTimeout(
+        ()=>{
+            updateAnalytics();
+            renderCharts();
+        },
+        100
+    );
+}
+
+    if(page==="calendar")
+        renderCalendar();
+
+    if(page==="intelligence")
+        renderInsights();
+
+    if(page==="goals")
+        renderGoals();
+
+    if(page==="budget")
+        renderBudgets();
+
+    if(page==="notification")
+        renderNotifications();
+
+    if(page==="export")
+        updateExportInfo();
+
+
+    document
+        .getElementById("sidebar")
+        .classList.remove("open");
+
+}
+
+
+function toggleSidebar(){
+
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+
+}
+
+
+/* =====================================================
+   CATEGORIES
+===================================================== */
+
+function setupCategories(){
+
+    const all=[];
+
+    Object.values(categories)
+        .forEach(
+            list=>{
+
+                list.forEach(
+                    c=>{
+
+                        if(!all.includes(c)){
+                            all.push(c);
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+    const transactionSelect =
+        document.getElementById(
+            "transactionCategory"
+        );
+
+    transactionSelect.innerHTML =
+        all.map(
+            c=>
+            `<option value="${escapeHTML(c)}">
+                ${escapeHTML(c)}
+            </option>`
+        ).join("");
+
+
+    const filter =
+        document.getElementById(
+            "categoryFilter"
+        );
+
+    filter.innerHTML =
+        `<option value="all">
+            ทุกหมวดหมู่
+        </option>`+
+        all.map(
+            c=>
+            `<option value="${escapeHTML(c)}">
+                ${escapeHTML(c)}
+            </option>`
+        ).join("");
+
+
+    const budget =
+        document.getElementById(
+            "budgetCategory"
+        );
+
+    budget.innerHTML =
+        all.map(
+            c=>
+            `<option value="${escapeHTML(c)}">
+                ${escapeHTML(c)}
+            </option>`
+        ).join("");
+
+}
+
+
+/* =====================================================
+   DATE
+===================================================== */
+
+function setDefaultDate(){
+
+    const today =
+        new Date()
+            .toISOString()
+            .split("T")[0];
+
+    document
+        .getElementById(
+            "transactionDate"
+        )
+        .value = today;
+
+
+    const now =
+        new Date();
+
+    document
+        .getElementById(
+            "calendarMonth"
+        )
+        .value =
+        now.toISOString()
+            .slice(0,7);
+
+}
+
+
+/* =====================================================
+   TRANSACTION MODAL
+===================================================== */
+
+function renderReceiptPreview(){
+
+    const preview = document.getElementById("receiptPreview");
+    const image = document.getElementById("receiptPreviewImage");
+    const name = document.getElementById("receiptPreviewName");
+
+    if(!preview || !image || !name) return;
+
+    if(transactionReceipt && transactionReceipt.dataUrl){
+        image.src = transactionReceipt.dataUrl;
+        name.textContent = transactionReceipt.name || "slip.jpg";
+        preview.hidden = false;
+    }else{
+        image.removeAttribute("src");
+        name.textContent = "";
+        preview.hidden = true;
+    }
+
+}
+
+
+function compressReceiptImage(file){
+
+    return new Promise((resolve,reject)=>{
+
+        if(!file || !file.type.startsWith("image/")){
+            reject(new Error("กรุณาเลือกไฟล์ภาพสลิป"));
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onerror = ()=>reject(new Error("อ่านไฟล์ภาพไม่สำเร็จ"));
+
+        reader.onload = ()=>{
+
+            const image = new Image();
+
+            image.onerror = ()=>reject(new Error("เปิดไฟล์ภาพไม่สำเร็จ"));
+
+            image.onload = ()=>{
+
+                const maxSize = 1400;
+                const longestSide = Math.max(image.width,image.height);
+                const scale = Math.min(1,maxSize / longestSide);
+                const canvas = document.createElement("canvas");
+                canvas.width = Math.max(1,Math.round(image.width * scale));
+                canvas.height = Math.max(1,Math.round(image.height * scale));
+
+                const context = canvas.getContext("2d");
+                context.fillStyle = "#ffffff";
+                context.fillRect(0,0,canvas.width,canvas.height);
+                context.drawImage(image,0,0,canvas.width,canvas.height);
+
+                resolve({
+                    dataUrl: canvas.toDataURL("image/jpeg",.78),
+                    name: file.name || "slip.jpg",
+                    type: "image/jpeg"
+                });
+
+            };
+
+            image.src = reader.result;
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+}
+
+
+window.handleReceiptFile = async function(input){
+
+    const file = input && input.files ? input.files[0] : null;
+    if(!file) return;
+
+    try{
+        transactionReceipt = await compressReceiptImage(file);
+        renderReceiptPreview();
+        showToast("แนบสลิปแล้ว กดบันทึกข้อมูลเพื่อบันทึก");
+    }catch(error){
+        showToast(error.message || "แนบสลิปไม่สำเร็จ");
+    }finally{
+        input.value = "";
+    }
+
+};
+
+
+window.removeReceipt = function(){
+
+    transactionReceipt = null;
+    const input = document.getElementById("transactionReceiptFile");
+    if(input) input.value = "";
+    renderReceiptPreview();
+    showToast("นำสลิปออกจากรายการแล้ว");
+
+};
+
+
+function stopReceiptCamera(){
+
+    if(receiptCameraStream){
+        receiptCameraStream.getTracks().forEach(track=>track.stop());
+        receiptCameraStream = null;
+    }
+
+    const video = document.getElementById("receiptCamera");
+    if(video) video.srcObject = null;
+
+}
+
+
+window.openReceiptCamera = async function(){
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        showToast("เบราว์เซอร์นี้ไม่รองรับการเปิดกล้อง");
+        return;
+    }
+
+    try{
+        receiptCameraStream = await navigator.mediaDevices.getUserMedia({
+            video:{facingMode:{ideal:"environment"}},
+            audio:false
+        });
+
+        const video = document.getElementById("receiptCamera");
+        video.srcObject = receiptCameraStream;
+        document.getElementById("cameraModal").classList.add("show");
+        await video.play().catch(()=>{});
+        if(window.lucide) lucide.createIcons();
+    }catch(error){
+        stopReceiptCamera();
+        showToast("เปิดกล้องไม่ได้ กรุณาอนุญาตการใช้กล้องแล้วลองใหม่");
+    }
+
+};
+
+
+window.closeReceiptCamera = function(){
+
+    stopReceiptCamera();
+    document.getElementById("cameraModal").classList.remove("show");
+
+};
+
+
+window.captureReceipt = function(){
+
+    const video = document.getElementById("receiptCamera");
+    const canvas = document.getElementById("receiptCanvas");
+
+    if(!video.videoWidth || !video.videoHeight){
+        showToast("กล้องยังไม่พร้อม กรุณารอสักครู่");
+        return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const context = canvas.getContext("2d");
+    context.drawImage(video,0,0,canvas.width,canvas.height);
+
+    transactionReceipt = {
+        dataUrl: canvas.toDataURL("image/jpeg",.82),
+        name: `camera-slip-${Date.now()}.jpg`,
+        type: "image/jpeg"
+    };
+
+    renderReceiptPreview();
+    closeReceiptCamera();
+    showToast("ถ่ายภาพสลิปแล้ว กดบันทึกข้อมูลเพื่อบันทึก");
+
+};
+
+
+document.getElementById("cameraModal").addEventListener("click",event=>{
+    if(event.target === event.currentTarget) closeReceiptCamera();
+});
+
+function openTransactionModal(type){
+
+    const form =
+        document.getElementById(
+            "transactionForm"
+        );
+
+    form.reset();
+    transactionReceipt = null;
+    renderReceiptPreview();
+
+
+    document
+        .getElementById(
+            "editTransactionId"
+        )
+        .value="";
+
+
+    if(type){
+
+        document
+            .getElementById(
+                "transactionType"
+            )
+            .value=type;
+
+    }
+
+
+    setDefaultDate();
+
+
+    document
+        .getElementById(
+            "transactionModalTitle"
+        )
+        .textContent =
+        "เพิ่มรายการ";
+
+
+    document
+        .getElementById(
+            "transactionModal"
+        )
+        .classList.add("show");
+
+}
+
+
+function toggleQuickExpense(){
+
+    openTransactionModal(
+        "expense"
+    );
+
+}
+
+
+function closeModal(id){
+
+    document
+        .getElementById(id)
+        .classList.remove("show");
+
+}
+
+
+/* =====================================================
+   SAVE TRANSACTION
+===================================================== */
+
+function saveTransaction(e){
+
+    e.preventDefault();
+
+
+    const id =
+        document
+            .getElementById(
+                "editTransactionId"
+            )
+            .value;
+
+
+    const data={
+
+        id:
+            id ||
+            Date.now().toString(),
+
+        type:
+            document
+                .getElementById(
+                    "transactionType"
+                )
+                .value,
+
+        amount:
+            Number(
+                document
+                    .getElementById(
+                        "transactionAmount"
+                    )
+                    .value
+            ),
+
+        category:
+            document
+                .getElementById(
+                    "transactionCategory"
+                )
+                .value,
+
+        date:
+            document
+                .getElementById(
+                    "transactionDate"
+                )
+                .value,
+
+        note:
+            document
+                .getElementById(
+                    "transactionNote"
+                )
+                .value
+                .trim(),
+
+        receiptDataUrl:
+            transactionReceipt
+            ? transactionReceipt.dataUrl
+            : "",
+
+        receiptName:
+            transactionReceipt
+            ? transactionReceipt.name
+            : "",
+
+        receiptType:
+            transactionReceipt
+            ? transactionReceipt.type
+            : ""
+
+    };
+
+
+    if(
+        !data.amount ||
+        data.amount<=0
+    ){
+
+        showToast(
+            "กรุณากรอกจำนวนเงิน"
+        );
+
+        return;
+
+    }
+
+
+    if(id){
+
+        const index =
+            transactions.findIndex(
+                x=>x.id===id
+            );
+
+        if(index!==-1){
+            transactions[index]=data;
+        }
+
+        showToast(
+            "แก้ไขรายการเรียบร้อย"
+        );
+
+    }else{
+
+        transactions.push(data);
+
+        showToast(
+            "บันทึกรายการเรียบร้อย"
+        );
+
+    }
+
+
+    saveData();
+
+    closeModal(
+        "transactionModal"
+    );
+
+    updateAll();
+
+}
+
+
+/* =====================================================
+   EDIT
+===================================================== */
+
+function editTransaction(id){
+
+    const item =
+        transactions.find(
+            x=>x.id===id
+        );
+
+    if(!item)return;
+
+
+    document
+        .getElementById(
+            "editTransactionId"
+        )
+        .value =
+        item.id;
+
+
+    document
+        .getElementById(
+            "transactionType"
+        )
+        .value =
+        item.type;
+
+
+    document
+        .getElementById(
+            "transactionAmount"
+        )
+        .value =
+        item.amount;
+
+
+    document
+        .getElementById(
+            "transactionCategory"
+        )
+        .value =
+        item.category;
+
+
+    document
+        .getElementById(
+            "transactionDate"
+        )
+        .value =
+        item.date;
+
+
+    document
+        .getElementById(
+            "transactionNote"
+        )
+        .value =
+        item.note || "";
+
+    transactionReceipt = item.receiptDataUrl
+        ? {
+            dataUrl:item.receiptDataUrl,
+            name:item.receiptName || "slip.jpg",
+            type:item.receiptType || "image/jpeg"
+        }
+        : null;
+
+    renderReceiptPreview();
+
+
+    document
+        .getElementById(
+            "transactionModalTitle"
+        )
+        .textContent =
+        "แก้ไขรายการ";
+
+
+    document
+        .getElementById(
+            "transactionModal"
+        )
+        .classList.add("show");
+
+}
+
+
+/* =====================================================
+   DELETE
+===================================================== */
+
+function deleteTransaction(id){
+
+    if(
+        !confirm(
+            "ต้องการลบรายการนี้หรือไม่?"
+        )
+    ){
+        return;
+    }
+
+
+    transactions =
+        transactions.filter(
+            x=>x.id!==id
+        );
+
+
+    saveData();
+
+    updateAll();
+
+    showToast(
+        "ลบรายการแล้ว"
+    );
+
+}
+
+
+/* =====================================================
+   TRANSACTION RENDER
+===================================================== */
+
+function renderTransactions(){
+
+    const container =
+        document.getElementById(
+            "allTransactions"
+        );
+
+
+    const search =
+        (
+            document
+                .getElementById(
+                    "searchInput"
+                )
+                .value || ""
+        ).toLowerCase();
+
+
+    const type =
+        document
+            .getElementById(
+                "typeFilter"
+            )
+            .value;
+
+
+    const category =
+        document
+            .getElementById(
+                "categoryFilter"
+            )
+            .value;
+
+
+    const date =
+        document
+            .getElementById(
+                "dateFilter"
+            )
+            .value;
+
+
+    let list =
+        transactions.filter(
+            item=>{
+
+                const text =
+                    (
+                        item.note+
+                        " "+
+                        item.category
+                    )
+                    .toLowerCase();
+
+
+                return(
+                    text.includes(search)&&
+                    (
+                        type==="all"||
+                        item.type===type
+                    )&&
+                    (
+                        category==="all"||
+                        item.category===category
+                    )&&
+                    (
+                        !date||
+                        item.date===date
+                    )
+                );
+
+            }
+        );
+
+
+    list.sort(
+        (a,b)=>
+        new Date(b.date)-
+        new Date(a.date)
+    );
+
+
+    if(!list.length){
+
+        container.innerHTML =
+            emptyState(
+                "inbox",
+                "ยังไม่มีรายการ",
+                "รายการที่คุณบันทึกจะแสดงที่นี่"
+            );
+
+        lucide.createIcons();
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        list
+            .map(
+                transactionHTML
+            )
+            .join("");
+
+
+    lucide.createIcons();
+
+}
+
+
+function transactionHTML(item){
+
+    const sign =
+        item.type==="income"
+        ? "+"
+        : "-";
+
+
+    const color =
+        item.type==="income"
+        ? "income"
+        : "expense";
+
+
+    return `
+
+    <div class="transaction">
+
+        <div class="transaction-left">
+
+            <div class="transaction-icon">
+
+                <i data-lucide="${
+                    item.type==="income"
+                    ? "arrow-down-left"
+                    : "arrow-up-right"
+                }"></i>
+
+            </div>
+
+
+            <div>
+
+                <div class="transaction-name">
+
+                    ${escapeHTML(
+                        item.note ||
+                        item.category
+                    )}
+
+                </div>
+
+
+                <div class="transaction-date">
+
+                    ${escapeHTML(item.date)}
+                    •
+                    ${escapeHTML(item.category)}
+
+                    ${item.receiptDataUrl ? " • มีสลิป" : ""}
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="transaction-right">
+
+            <div
+                class="transaction-amount ${color}">
+
+                ${sign}${money(item.amount)}
+
+            </div>
+
+
+            <div class="transaction-actions">
+
+                <button
+                    class="small-btn"
+                    onclick="editTransaction('${item.id}')">
+
+                    แก้ไข
+
+                </button>
+
+
+                <button
+                    class="small-btn"
+                    onclick="deleteTransaction('${item.id}')">
+
+                    ลบ
+
+                </button>
+
+                ${item.receiptDataUrl ? `<button class="small-btn transaction-receipt-btn" type="button" data-receipt-id="${escapeHTML(item.id)}"><i data-lucide="image"></i> ดูสลิป</button>` : ""}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    `;
+
+}
+
+
+window.viewReceipt = function(id){
+
+    const item = transactions.find(x=>String(x.id) === String(id));
+
+    if(!item || !item.receiptDataUrl || !/^data:image\//i.test(item.receiptDataUrl)){
+        showToast("ไม่พบสลิปของรายการนี้");
+        return;
+    }
+
+    const receiptWindow = window.open("", "_blank");
+
+    if(!receiptWindow){
+        showToast("เบราว์เซอร์บล็อกหน้าต่างสลิป กรุณาอนุญาตป๊อปอัป");
+        return;
+    }
+
+    receiptWindow.document.title = item.receiptName || "สลิป TAr POCKET";
+    receiptWindow.document.body.style.cssText = "margin:0;min-height:100vh;display:grid;place-items:center;background:#07111f;padding:20px;box-sizing:border-box";
+    const image = receiptWindow.document.createElement("img");
+    image.src = item.receiptDataUrl;
+    image.alt = "สลิปการเงิน";
+    image.style.cssText = "max-width:100%;max-height:calc(100vh - 40px);object-fit:contain;border-radius:12px";
+    receiptWindow.document.body.appendChild(image);
+
+};
+
+
+document.addEventListener("click",event=>{
+
+    const receiptButton = event.target.closest("[data-receipt-id]");
+    if(receiptButton) viewReceipt(receiptButton.dataset.receiptId);
+
+});
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function updateDashboard(){
+
+    const income =
+        transactions
+            .filter(
+                x=>x.type==="income"
+            )
+            .reduce(
+                (sum,x)=>
+                sum+x.amount,
+                0
+            );
+
+
+    const expense =
+        transactions
+            .filter(
+                x=>x.type==="expense"
+            )
+            .reduce(
+                (sum,x)=>
+                sum+x.amount,
+                0
+            );
+
+
+    const balance =
+        income-expense;
+
+
+    document
+        .getElementById(
+            "totalIncome"
+        )
+        .textContent =
+        money(income);
+
+
+    document
+        .getElementById(
+            "totalExpense"
+        )
+        .textContent =
+        money(expense);
+
+
+    document
+        .getElementById(
+            "balance"
+        )
+        .textContent =
+        money(balance);
+
+
+    const saving =
+        Math.max(
+            balance,
+            0
+        );
+
+
+    document
+        .getElementById(
+            "saving"
+        )
+        .textContent =
+        money(saving);
+
+
+    const score =
+        calculateScore(
+            income,
+            expense
+        );
+
+
+    document
+        .getElementById(
+            "score"
+        )
+        .textContent =
+        transactions.length
+        ? score
+        : "-";
+
+
+    document
+        .getElementById(
+            "scoreText"
+        )
+        .textContent =
+        transactions.length
+        ? scoreText(score)
+        : "ยังไม่มีข้อมูล";
+
+
+    const recent =
+        document.getElementById(
+            "recentTransactions"
+        );
+
+
+    const list =
+        [...transactions]
+            .sort(
+                (a,b)=>
+                new Date(b.date)-
+                new Date(a.date)
+            )
+            .slice(0,5);
+
+
+    if(!list.length){
+
+        recent.innerHTML =
+            emptyState(
+                "wallet",
+                "ยังไม่มีข้อมูล",
+                "เพิ่มรายรับหรือรายจ่ายเพื่อเริ่มต้น"
+            );
+
+    }else{
+
+        recent.innerHTML =
+            list
+                .map(
+                    transactionHTML
+                )
+                .join("");
+
+    }
+
+
+    lucide.createIcons();
+
+    renderCharts();
+
+}
+
+
+/* =====================================================
+   SCORE
+===================================================== */
+
+function calculateScore(
+    income,
+    expense
+){
+
+    if(!transactions.length)
+        return 0;
+
+
+    if(income<=0)
+        return expense>0
+            ? 10
+            : 50;
+
+
+    const ratio =
+        (
+            income-expense
+        ) / income;
+
+
+    let score =
+        50+(ratio*50);
+
+
+    return Math.round(
+        Math.max(
+            0,
+            Math.min(
+                100,
+                score
+            )
+        )
+    );
+
+}
+
+
+function scoreText(score){
+
+    if(score>=85)
+        return "ดีเยี่ยม";
+
+    if(score>=70)
+        return "ดี";
+
+    if(score>=50)
+        return "ปานกลาง";
+
+    if(score>=30)
+        return "ควรระวัง";
+
+    return "ควรปรับปรุง";
+
+}
+
+
+/* =====================================================
+   CHARTS
+===================================================== */
+
+let overviewChart=null;
+let analyticsChart=null;
+let categoryChart=null;
+
+
+function renderCharts(){
+
+    const income =
+        transactions
+            .filter(
+                x=>x.type==="income"
+            )
+            .reduce(
+                (s,x)=>
+                s+x.amount,
+                0
+            );
+
+
+    const expense =
+        transactions
+            .filter(
+                x=>x.type==="expense"
+            )
+            .reduce(
+                (s,x)=>
+                s+x.amount,
+                0
+            );
+
+
+    const ctx =
+        document.getElementById(
+            "overviewChart"
+        );
+
+
+    /* Fallback when Chart.js cannot be loaded. */
+    if(typeof Chart === "undefined"){
+        if(ctx){
+            const total = income + expense;
+            const incomePct = total ? Math.round((income/total)*100) : 0;
+            const expensePct = total ? 100-incomePct : 0;
+
+            ctx.style.display = "none";
+            let fallback = document.getElementById("overviewChartFallback");
+            if(!fallback){
+                fallback = document.createElement("div");
+                fallback.id = "overviewChartFallback";
+                fallback.style.cssText = "height:280px;display:flex;flex-direction:column;justify-content:center;gap:18px;padding:10px 18px;";
+                ctx.parentNode.insertBefore(fallback, ctx.nextSibling);
+            }
+            fallback.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                    <span style="color:#a9bacd;font-weight:700;">รายรับ</span>
+                    <strong style="color:#20e3a2;font-size:20px;">${money(income)}</strong>
+                </div>
+                <div style="height:14px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;">
+                    <div style="height:100%;width:${incomePct}%;background:#20e3a2;border-radius:999px;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+                    <span style="color:#a9bacd;font-weight:700;">รายจ่าย</span>
+                    <strong style="color:#ff5c7a;font-size:20px;">${money(expense)}</strong>
+                </div>
+                <div style="height:14px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden;">
+                    <div style="height:100%;width:${expensePct}%;background:#ff5c7a;border-radius:999px;"></div>
+                </div>
+                <div style="display:flex;justify-content:center;gap:24px;color:#91a4bb;font-size:13px;">
+                    <span>● รายรับ ${incomePct}%</span>
+                    <span>● รายจ่าย ${expensePct}%</span>
+                </div>`;
+        }
+        return;
+    }
+
+    const fallback = document.getElementById("overviewChartFallback");
+    if(fallback) fallback.remove();
+    if(ctx) ctx.style.display = "block";
+
+
+    if(ctx){
+
+        if(overviewChart)
+            overviewChart.destroy();
+
+
+        overviewChart =
+            new Chart(
+                ctx,
+                {
+
+                    type:"doughnut",
+
+                    data:{
+
+                        labels:[
+                            "รายรับ",
+                            "รายจ่าย"
+                        ],
+
+                        datasets:[{
+
+                            data:[
+                                income,
+                                expense
+                            ],
+
+                            backgroundColor:[
+                                "#20e3a2",
+                                "#ff5c7a"
+                            ],
+
+                            borderWidth:0
+
+                        }]
+
+                    },
+
+                    options:{
+
+                        responsive:true,
+                        maintainAspectRatio:false,
+
+                        plugins:{
+
+                            legend:{
+
+                                labels:{
+                                    color:"#a9bacd"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    const ctx2 =
+        document.getElementById(
+            "analyticsChart"
+        );
+
+
+    if(ctx2){
+
+        if(analyticsChart)
+            analyticsChart.destroy();
+
+
+        const dates =
+            [...new Set(
+                transactions.map(
+                    x=>x.date
+                )
+            )].sort();
+
+
+        analyticsChart =
+            new Chart(
+                ctx2,
+                {
+
+                    type:"line",
+
+                    data:{
+
+                        labels:dates,
+
+                        datasets:[
+
+                            {
+
+                                label:"รายรับ",
+
+                                data:
+                                    dates.map(
+                                        d=>
+                                        transactions
+                                            .filter(
+                                                x=>
+                                                x.date===d &&
+                                                x.type==="income"
+                                            )
+                                            .reduce(
+                                                (s,x)=>
+                                                s+x.amount,
+                                                0
+                                            )
+                                    ),
+
+                                borderColor:
+                                    "#20e3a2",
+
+                                tension:.4
+
+                            },
+
+
+                            {
+
+                                label:"รายจ่าย",
+
+                                data:
+                                    dates.map(
+                                        d=>
+                                        transactions
+                                            .filter(
+                                                x=>
+                                                x.date===d &&
+                                                x.type==="expense"
+                                            )
+                                            .reduce(
+                                                (s,x)=>
+                                                s+x.amount,
+                                                0
+                                            )
+                                    ),
+
+                                borderColor:
+                                    "#ff5c7a",
+
+                                tension:.4
+
+                            }
+
+                        ]
+
+                    },
+
+                    options:{
+
+                        responsive:true,
+
+                        scales:{
+
+                            x:{
+
+                                ticks:{
+                                    color:"#91a4bb"
+                                }
+
+                            },
+
+                            y:{
+
+                                ticks:{
+                                    color:"#91a4bb"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    const ctx3 =
+        document.getElementById(
+            "categoryChart"
+        );
+
+
+    if(ctx3){
+
+        if(categoryChart)
+            categoryChart.destroy();
+
+
+        const map={};
+
+
+        transactions
+            .filter(
+                x=>x.type==="expense"
+            )
+            .forEach(
+                x=>{
+
+                    map[x.category] =
+                        (map[x.category]||0)+
+                        x.amount;
+
+                }
+            );
+
+
+        categoryChart =
+            new Chart(
+                ctx3,
+                {
+
+                    type:"bar",
+
+                    data:{
+
+                        labels:
+                            Object.keys(map),
+
+                        datasets:[{
+
+                            label:
+                                "ค่าใช้จ่าย",
+
+                            data:
+                                Object.values(map),
+
+                            backgroundColor:
+                                "rgba(0,217,255,.5)",
+
+                            borderColor:
+                                "#00d9ff",
+
+                            borderWidth:1
+
+                        }]
+
+                    },
+
+                    options:{
+
+                        responsive:true,
+
+                        scales:{
+
+                            x:{
+
+                                ticks:{
+                                    color:"#91a4bb"
+                                }
+
+                            },
+
+                            y:{
+
+                                ticks:{
+                                    color:"#91a4bb"
+                                }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+}
+
+
+/* =====================================================
+   ANALYTICS
+===================================================== */
+
+function updateAnalytics(){
+
+    const expenses =
+        transactions.filter(
+            x=>x.type==="expense"
+        );
+
+
+    const map={};
+
+
+    expenses.forEach(
+        x=>{
+
+            map[x.category] =
+                (map[x.category]||0)+
+                x.amount;
+
+        }
+    );
+
+
+    const top =
+        Object.entries(map)
+            .sort(
+                (a,b)=>
+                b[1]-a[1]
+            )[0];
+
+
+    document
+        .getElementById(
+            "topCategory"
+        )
+        .textContent =
+        top
+        ? top[0]
+        : "-";
+
+
+    document
+        .getElementById(
+            "transactionCount"
+        )
+        .textContent =
+        transactions.length;
+
+
+    const total =
+        expenses.reduce(
+            (s,x)=>
+            s+x.amount,
+            0
+        );
+
+
+    const average =
+        expenses.length
+        ? total/expenses.length
+        : 0;
+
+
+    document
+        .getElementById(
+            "averageExpense"
+        )
+        .textContent =
+        money(average);
+
+}
+
+
+/* =====================================================
+   GOALS
+===================================================== */
+
+function openGoalModal(){
+
+    document
+        .getElementById(
+            "goalModal"
+        )
+        .classList.add("show");
+
+}
+
+
+function saveGoal(e){
+
+    e.preventDefault();
+
+
+    const goal={
+
+        id:
+            Date.now().toString(),
+
+        name:
+            document
+                .getElementById(
+                    "goalName"
+                )
+                .value,
+
+        target:
+            Number(
+                document
+                    .getElementById(
+                        "goalTarget"
+                    )
+                    .value
+            ),
+
+        current:
+            Number(
+                document
+                    .getElementById(
+                        "goalCurrent"
+                    )
+                    .value
+            )
+
+    };
+
+
+    goals.push(goal);
+
+    saveData();
+
+    closeModal(
+        "goalModal"
+    );
+
+    renderGoals();
+
+    showToast(
+        "สร้างเป้าหมายแล้ว"
+    );
+
+}
+
+
+function renderGoals(){
+
+    const container =
+        document.getElementById(
+            "goalList"
+        );
+
+
+    if(!goals.length){
+
+        container.innerHTML =
+            emptyState(
+                "target",
+                "ยังไม่มีเป้าหมาย",
+                "เพิ่มเป้าหมายการออมของคุณ"
+            );
+
+        lucide.createIcons();
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        goals
+            .map(
+                goal=>{
+
+                    const percent =
+                        goal.target
+                        ? Math.min(
+                            100,
+                            (
+                                goal.current/
+                                goal.target
+                            )*100
+                        )
+                        : 0;
+
+
+                    return `
+
+                    <div class="goal">
+
+                        <div class="goal-top">
+
+                            <div class="goal-name">
+
+                                ${escapeHTML(
+                                    goal.name
+                                )}
+
+                            </div>
+
+
+                            <button
+                                class="small-btn"
+                                onclick="deleteGoal('${goal.id}')">
+
+                                ลบ
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="goal-money">
+
+                            ${money(goal.current)}
+                            /
+                            ${money(goal.target)}
+
+                        </div>
+
+
+                        <div class="progress">
+
+                            <span
+                                style="
+                                width:${percent}%">
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            style="
+                            color:var(--muted);
+                            font-size:11px;
+                            margin-top:7px">
+
+                            ${percent.toFixed(0)}%
+
+                        </div>
+
+                    </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+function deleteGoal(id){
+
+    goals =
+        goals.filter(
+            x=>x.id!==id
+        );
+
+
+    saveData();
+
+    renderGoals();
+
+}
+
+
+/* =====================================================
+   BUDGET
+===================================================== */
+
+function openBudgetModal(){
+
+    document
+        .getElementById(
+            "budgetModal"
+        )
+        .classList.add("show");
+
+}
+
+
+function saveBudget(e){
+
+    e.preventDefault();
+
+
+    const category =
+        document
+            .getElementById(
+                "budgetCategory"
+            )
+            .value;
+
+
+    const amount =
+        Number(
+            document
+                .getElementById(
+                    "budgetAmount"
+                )
+                .value
+        );
+
+
+    budgets =
+        budgets.filter(
+            x=>
+            x.category!==category
+        );
+
+
+    budgets.push({
+
+        id:
+            Date.now().toString(),
+
+        category,
+
+        amount
+
+    });
+
+
+    saveData();
+
+    closeModal(
+        "budgetModal"
+    );
+
+    renderBudgets();
+
+    showToast(
+        "ตั้งงบประมาณแล้ว"
+    );
+
+}
+
+
+function renderBudgets(){
+
+    const container =
+        document.getElementById(
+            "budgetList"
+        );
+
+
+    if(!budgets.length){
+
+        container.innerHTML =
+            emptyState(
+                "credit-card",
+                "ยังไม่มีงบประมาณ",
+                "ตั้งงบประมาณแยกตามหมวดหมู่"
+            );
+
+        lucide.createIcons();
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        budgets
+            .map(
+                b=>{
+
+                    const used =
+                        transactions
+                            .filter(
+                                x=>
+                                x.type==="expense" &&
+                                x.category===b.category
+                            )
+                            .reduce(
+                                (s,x)=>
+                                s+x.amount,
+                                0
+                            );
+
+
+                    const percent =
+                        b.amount
+                        ? Math.min(
+                            100,
+                            used/b.amount*100
+                        )
+                        : 0;
+
+
+                    return `
+
+                    <div class="goal">
+
+                        <div class="goal-top">
+
+                            <div class="goal-name">
+
+                                ${escapeHTML(
+                                    b.category
+                                )}
+
+                            </div>
+
+
+                            <button
+                                class="small-btn"
+                                onclick="deleteBudget('${b.id}')">
+
+                                ลบ
+
+                            </button>
+
+                        </div>
+
+
+                        <div class="goal-money">
+
+                            ใช้ไป
+                            ${money(used)}
+                            /
+                            ${money(b.amount)}
+
+                        </div>
+
+
+                        <div class="progress">
+
+                            <span
+                                style="
+                                width:${percent}%;
+                                ${
+                                    percent>=100
+                                    ? "background:#ff5c7a;"
+                                    : ""
+                                }">
+
+                            </span>
+
+                        </div>
+
+
+                        <div
+                            style="
+                            margin-top:7px;
+                            font-size:11px;
+                            color:${
+                                percent>=100
+                                ? "var(--red)"
+                                : "var(--muted)"
+                            }">
+
+                            ${
+                                percent>=100
+                                ? "เกินงบประมาณ"
+                                : percent.toFixed(0)+"% ของงบ"
+                            }
+
+                        </div>
+
+                    </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+function deleteBudget(id){
+
+    budgets =
+        budgets.filter(
+            x=>x.id!==id
+        );
+
+
+    saveData();
+
+    renderBudgets();
+
+}
+
+
+/* =====================================================
+   CALENDAR
+===================================================== */
+
+function renderCalendar(){
+
+    const value =
+        document
+            .getElementById(
+                "calendarMonth"
+            )
+            .value;
+
+
+    if(!value)return;
+
+
+    const [
+        year,
+        month
+    ] =
+        value
+            .split("-")
+            .map(Number);
+
+
+    const first =
+        new Date(
+            year,
+            month-1,
+            1
+        );
+
+
+    const last =
+        new Date(
+            year,
+            month,
+            0
+        );
+
+
+    const start =
+        first.getDay();
+
+
+    const names=[
+        "อา",
+        "จ",
+        "อ",
+        "พ",
+        "พฤ",
+        "ศ",
+        "ส"
+    ];
+
+
+    let html="";
+
+
+    names.forEach(
+        n=>{
+
+            html += `
+
+            <div
+                style="
+                text-align:center;
+                color:var(--muted);
+                padding:8px">
+
+                ${n}
+
+            </div>
+
+            `;
+
+        }
+    );
+
+
+    for(
+        let i=0;
+        i<start;
+        i++
+    ){
+
+        html += `<div></div>`;
+
+    }
+
+
+    for(
+        let d=1;
+        d<=last.getDate();
+        d++
+    ){
+
+        const date =
+            `${year}-${String(month)
+                .padStart(2,"0")}-${String(d)
+                .padStart(2,"0")}`;
+
+
+        const list =
+            transactions.filter(
+                x=>x.date===date
+            );
+
+
+        const income =
+            list
+                .filter(
+                    x=>x.type==="income"
+                )
+                .reduce(
+                    (s,x)=>
+                    s+x.amount,
+                    0
+                );
+
+
+        const expense =
+            list
+                .filter(
+                    x=>x.type==="expense"
+                )
+                .reduce(
+                    (s,x)=>
+                    s+x.amount,
+                    0
+                );
+
+
+        html += `
+
+        <div class="day">
+
+            <div class="day-number">
+                ${d}
+            </div>
+
+            ${
+                income
+                ? `
+                <div class="day-income">
+                    +${money(income)}
+                </div>
+                `
+                : ""
+            }
+
+
+            ${
+                expense
+                ? `
+                <div class="day-expense">
+                    -${money(expense)}
+                </div>
+                `
+                : ""
+            }
+
+        </div>
+
+        `;
+
+    }
+
+
+    document
+        .getElementById(
+            "calendarGrid"
+        )
+        .innerHTML =
+        html;
+
+}
+
+
+/* =====================================================
+   INTELLIGENCE
+===================================================== */
+
+function renderInsights(){
+
+    const container =
+        document.getElementById(
+            "insights"
+        );
+
+
+    if(!transactions.length){
+
+        container.innerHTML =
+            emptyState(
+                "brain",
+                "ยังไม่มีข้อมูลสำหรับวิเคราะห์",
+                "เพิ่มรายรับและรายจ่ายเพื่อให้ FINX วิเคราะห์"
+            );
+
+        lucide.createIcons();
+
+        return;
+
+    }
+
+
+    const income =
+        transactions
+            .filter(
+                x=>x.type==="income"
+            )
+            .reduce(
+                (s,x)=>
+                s+x.amount,
+                0
+            );
+
+
+    const expense =
+        transactions
+            .filter(
+                x=>x.type==="expense"
+            )
+            .reduce(
+                (s,x)=>
+                s+x.amount,
+                0
+            );
+
+
+    const ratio =
+        income
+        ? expense/income*100
+        : 100;
+
+
+    const tips=[];
+
+
+    if(ratio>80){
+
+        tips.push(
+            "⚠️ รายจ่ายค่อนข้างสูงเมื่อเทียบกับรายรับ"
+        );
+
+    }else{
+
+        tips.push(
+            "✅ สัดส่วนรายจ่ายต่อรายรับอยู่ในระดับที่ดี"
+        );
+
+    }
+
+
+    if(income>expense){
+
+        tips.push(
+            "💰 คุณมีเงินเหลือหลังหักรายจ่าย"
+        );
+
+    }else{
+
+        tips.push(
+            "📉 ควรตรวจสอบรายจ่ายและวางแผนงบประมาณ"
+        );
+
+    }
+
+
+    const expenses =
+        transactions.filter(
+            x=>x.type==="expense"
+        );
+
+
+    const map={};
+
+
+    expenses.forEach(
+        x=>{
+
+            map[x.category] =
+                (map[x.category]||0)+
+                x.amount;
+
+        }
+    );
+
+
+    const top =
+        Object.entries(map)
+            .sort(
+                (a,b)=>
+                b[1]-a[1]
+            )[0];
+
+
+    if(top){
+
+        tips.push(
+            `📊 หมวดที่ใช้จ่ายสูงสุดตอนนี้คือ ${top[0]}`
+        );
+
+    }
+
+
+    container.innerHTML =
+        tips
+            .map(
+                t=>`
+
+                <div class="notification">
+
+                    <strong>
+                        FINX วิเคราะห์
+                    </strong>
+
+                    <div>
+                        ${escapeHTML(t)}
+                    </div>
+
+                </div>
+
+                `
+            )
+            .join("");
+
+
+    const score =
+        calculateScore(
+            income,
+            expense
+        );
+
+
+    document
+        .getElementById(
+            "score2"
+        )
+        .textContent =
+        score;
+
+
+    document
+        .getElementById(
+            "scoreText2"
+        )
+        .textContent =
+        scoreText(score);
+
+}
+
+
+/* =====================================================
+   NOTIFICATIONS
+===================================================== */
+
+function renderNotifications(){
+
+    const list =
+        document.getElementById(
+            "notificationList"
+        );
+
+
+    const notifications=[];
+
+
+    budgets.forEach(
+        b=>{
+
+            const used =
+                transactions
+                    .filter(
+                        x=>
+                        x.type==="expense" &&
+                        x.category===b.category
+                    )
+                    .reduce(
+                        (s,x)=>
+                        s+x.amount,
+                        0
+                    );
+
+
+            if(used>=b.amount){
+
+                notifications.push({
+
+                    title:
+                        "⚠️ แจ้งเตือนงบประมาณ",
+
+                    text:
+                        `งบหมวด ${b.category} ถูกใช้เกินหรือครบแล้ว`
+
+                });
+
+            }else if(
+                used>=b.amount*.8
+            ){
+
+                notifications.push({
+
+                    title:
+                        "🔔 เตือนงบประมาณ",
+
+                    text:
+                        `งบหมวด ${b.category} ใกล้ถึงขีดจำกัด`
+
+                });
+
+            }
+
+        }
+    );
+
+
+    if(!notifications.length){
+
+        list.innerHTML =
+            emptyState(
+                "bell",
+                "ยังไม่มีการแจ้งเตือน",
+                "การแจ้งเตือนจะแสดงเมื่อมีเหตุการณ์สำคัญ"
+            );
+
+        lucide.createIcons();
+
+        return;
+
+    }
+
+
+    list.innerHTML =
+        notifications
+            .map(
+                n=>`
+
+                <div class="notification">
+
+                    <strong>
+                        ${escapeHTML(n.title)}
+                    </strong>
+
+                    <div>
+                        ${escapeHTML(n.text)}
+                    </div>
+
+                </div>
+
+                `
+            )
+            .join("");
+
+}
+
+
+function showNotifications(){
+
+    goPage(
+        "notification"
+    );
+
+
+    document
+        .querySelectorAll(
+            ".nav-btn"
+        )
+        .forEach(
+            b=>
+            b.classList.toggle(
+                "active",
+                b.dataset.page==="notification"
+            )
+        );
+
+}
+
+
+/* =====================================================
+   THEME
+===================================================== */
+
+const themes={
+
+    cyber:{
+        accent:"#00d9ff",
+        accent2:"#6c5ce7",
+        border:"#203b59"
+    },
+
+    premium:{
+        accent:"#d4af37",
+        accent2:"#8b6914",
+        border:"#51421e"
+    },
+
+    fresh:{
+        accent:"#20e3a2",
+        accent2:"#0ea5a4",
+        border:"#1c544a"
+    },
+
+    sunset:{
+        accent:"#ff9966",
+        accent2:"#ff5e62",
+        border:"#5c302b"
+    },
+
+    purple:{
+        accent:"#a855f7",
+        accent2:"#6366f1",
+        border:"#40336b"
+    }
+
+};
+
+
+function changeTheme(name){
+
+    const theme =
+        themes[name];
+
+
+    if(!theme)return;
+
+
+    document.documentElement.style.setProperty(
+        "--accent",
+        theme.accent
+    );
+
+
+    document.documentElement.style.setProperty(
+        "--accent2",
+        theme.accent2
+    );
+
+
+    document.documentElement.style.setProperty(
+        "--border",
+        theme.border
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_theme"),
+        name
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_accent"),
+        theme.accent
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_accent2"),
+        theme.accent2
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_border"),
+        theme.border
+    );
+
+
+    document
+        .querySelectorAll(
+            ".theme-option"
+        )
+        .forEach(
+            el=>{
+
+                el.classList.toggle(
+                    "active",
+                    el.dataset.theme===name
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "accentPicker"
+        )
+        .value =
+        theme.accent;
+
+
+    document
+        .getElementById(
+            "borderPicker"
+        )
+        .value =
+        theme.border;
+
+
+    renderCharts();
+
+
+    showToast(
+        "เปลี่ยนธีมแล้ว 🎨"
+    );
+
+}
+
+
+function customAccent(color){
+
+    document.documentElement.style.setProperty(
+        "--accent",
+        color
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_accent"),
+        color
+    );
+
+}
+
+
+function customBorder(color){
+
+    document.documentElement.style.setProperty(
+        "--border",
+        color
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_border"),
+        color
+    );
+
+}
+
+
+/* =====================================================
+   LIGHT MODE
+===================================================== */
+
+function applyLightMode(){
+
+    document.documentElement.style.setProperty(
+        "--bg",
+        "#eef4f9"
+    );
+
+    document.documentElement.style.setProperty(
+        "--bg2",
+        "#f7fbff"
+    );
+
+    document.documentElement.style.setProperty(
+        "--card",
+        "#ffffff"
+    );
+
+    document.documentElement.style.setProperty(
+        "--card2",
+        "#f3f7fb"
+    );
+
+    document.documentElement.style.setProperty(
+        "--text",
+        "#172235"
+    );
+
+    document.documentElement.style.setProperty(
+        "--muted",
+        "#64748b"
+    );
+
+}
+
+
+function applyDarkMode(){
+
+    document.documentElement.style.setProperty(
+        "--bg",
+        "#07111f"
+    );
+
+    document.documentElement.style.setProperty(
+        "--bg2",
+        "#0b1728"
+    );
+
+    document.documentElement.style.setProperty(
+        "--card",
+        "#101f33"
+    );
+
+    document.documentElement.style.setProperty(
+        "--card2",
+        "#13263d"
+    );
+
+    document.documentElement.style.setProperty(
+        "--text",
+        "#f5f8ff"
+    );
+
+    document.documentElement.style.setProperty(
+        "--muted",
+        "#91a4bb"
+    );
+
+}
+
+
+function toggleLightMode(){
+
+    const current =
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_light")
+        ) === "true";
+
+
+    if(current){
+
+        applyDarkMode();
+
+        localStorage.setItem(
+            window.__tafinxScopedKey("tafinx_light"),
+            "false"
+        );
+
+
+        showToast(
+            "เปลี่ยนเป็นโหมดมืด 🌙"
+        );
+
+    }else{
+
+        applyLightMode();
+
+        localStorage.setItem(
+            window.__tafinxScopedKey("tafinx_light"),
+            "true"
+        );
+
+
+        showToast(
+            "เปลี่ยนเป็นโหมดสว่าง ☀️"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   RESET THEME
+===================================================== */
+
+function resetTheme(){
+
+    changeTheme(
+        "cyber"
+    );
+
+    applyDarkMode();
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_light"),
+        "false"
+    );
+
+
+    showToast(
+        "รีเซ็ตธีมเรียบร้อยแล้ว"
+    );
+
+}
+
+
+/* =====================================================
+   LOAD THEME
+===================================================== */
+
+function loadTheme(){
+
+    const themeName =
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_theme")
+        ) || "cyber";
+
+
+    const theme =
+        themes[themeName];
+
+
+    if(theme){
+
+        document.documentElement.style.setProperty(
+            "--accent",
+            localStorage.getItem(
+                window.__tafinxScopedKey("tafinx_accent")
+            ) || theme.accent
+        );
+
+
+        document.documentElement.style.setProperty(
+            "--accent2",
+            localStorage.getItem(
+                window.__tafinxScopedKey("tafinx_accent2")
+            ) || theme.accent2
+        );
+
+
+        document.documentElement.style.setProperty(
+            "--border",
+            localStorage.getItem(
+                window.__tafinxScopedKey("tafinx_border")
+            ) || theme.border
+        );
+
+    }
+
+
+    if(
+        localStorage.getItem(
+            window.__tafinxScopedKey("tafinx_light")
+        ) === "true"
+    ){
+
+        applyLightMode();
+
+    }
+
+
+    setTimeout(
+        ()=>{
+
+            document
+                .querySelectorAll(
+                    ".theme-option"
+                )
+                .forEach(
+                    el=>{
+
+                        el.classList.toggle(
+                            "active",
+                            el.dataset.theme===themeName
+                        );
+
+                    }
+                );
+
+
+            const accent =
+                localStorage.getItem(
+                    window.__tafinxScopedKey("tafinx_accent")
+                );
+
+
+            const border =
+                localStorage.getItem(
+                    window.__tafinxScopedKey("tafinx_border")
+                );
+
+
+            if(accent){
+
+                document
+                    .getElementById(
+                        "accentPicker"
+                    )
+                    .value =
+                    accent;
+
+            }
+
+
+            if(border){
+
+                document
+                    .getElementById(
+                        "borderPicker"
+                    )
+                    .value =
+                    border;
+
+            }
+
+        },
+        100
+    );
+
+}
+
+
+/* =====================================================
+   EXPORT
+===================================================== */
+
+function exportCSV(){
+
+    if(!transactions.length){
+
+        showToast(
+            "ยังไม่มีข้อมูลสำหรับส่งออก"
+        );
+
+        return;
+
+    }
+
+
+    let csv =
+        "ประเภท,จำนวนเงิน,หมวดหมู่,วันที่,รายละเอียด\n";
+
+
+    transactions.forEach(
+        x=>{
+
+            csv +=
+                `"${x.type}",`+
+                `"${x.amount}",`+
+                `"${x.category}",`+
+                `"${x.date}",`+
+                `"${x.note || ""}"\n`;
+
+        }
+    );
+
+
+    downloadFile(
+        csv,
+        "tar-pocket-transactions.csv",
+        "text/csv;charset=utf-8;"
+    );
+
+
+    showToast(
+        "ส่งออก CSV สำเร็จ"
+    );
+
+}
+
+
+function exportJSON(){
+
+    const data={
+
+        transactions,
+
+        goals,
+
+        budgets,
+
+        theme:
+            localStorage.getItem(
+                window.__tafinxScopedKey("tafinx_theme")
+            )
+
+    };
+
+
+    downloadFile(
+
+        JSON.stringify(
+            data,
+            null,
+            2
+        ),
+
+        "tar-pocket-backup.json",
+
+        "application/json"
+
+    );
+
+
+    showToast(
+        "สำรองข้อมูลสำเร็จ"
+    );
+
+}
+
+
+function updateExportInfo(){
+
+    document
+        .getElementById(
+            "exportInfo"
+        )
+        .textContent =
+        `${transactions.length} รายการ`;
+
+}
+
+
+function downloadFile(
+    content,
+    filename,
+    type
+){
+
+    const blob =
+        new Blob(
+            ["\ufeff"+content],
+            {type}
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const a =
+        document.createElement(
+            "a"
+        );
+
+
+    a.href=url;
+
+    a.download=filename;
+
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    a.remove();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+/* =====================================================
+   UPDATE ALL
+===================================================== */
+
+function updateAll(){
+
+    updateDashboard();
+
+    renderTransactions();
+
+    updateAnalytics();
+
+    renderGoals();
+
+    renderBudgets();
+
+    renderCalendar();
+
+    renderInsights();
+
+    renderNotifications();
+
+    updateExportInfo();
+
+    lucide.createIcons();
+
+    saveData();
+
+}
+
+
+/* =====================================================
+   SAVE DATA
+===================================================== */
+
+function saveData(){
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_transactions"),
+        JSON.stringify(
+            transactions
+        )
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_goals"),
+        JSON.stringify(
+            goals
+        )
+    );
+
+
+    localStorage.setItem(
+        window.__tafinxScopedKey("tafinx_budgets"),
+        JSON.stringify(
+            budgets
+        )
+    );
+
+}
+
+
+/* =====================================================
+   HELPERS
+===================================================== */
+
+function money(value){
+
+    return new Intl.NumberFormat(
+        "th-TH",
+        {
+
+            style:"currency",
+
+            currency:"THB"
+
+        }
+    ).format(
+        value || 0
+    );
+
+}
+
+
+function escapeHTML(str){
+
+    return String(
+        str ?? ""
+    )
+
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+
+    .replace(
+        /</g,
+        "&lt;"
+    )
+
+    .replace(
+        />/g,
+        "&gt;"
+    )
+
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+function emptyState(
+    icon,
+    title,
+    text
+){
+
+    return `
+
+    <div class="empty">
+
+        <i data-lucide="${icon}"></i>
+
+        <h3>
+            ${escapeHTML(title)}
+        </h3>
+
+        <p>
+            ${escapeHTML(text)}
+        </p>
+
+    </div>
+
+    `;
+
+}
+
+
+function showToast(message){
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    setTimeout(
+        ()=>{
+
+            toast.classList.remove(
+                "show"
+            );
+
+        },
+        2500
+    );
+
+}
+
+
+/* =====================================================
+   ปิดหน้าต่างเมื่อคลิกด้านนอก
+===================================================== */
+
+document
+    .querySelectorAll(
+        ".modal"
+    )
+    .forEach(
+        modal=>{
+
+            modal.addEventListener(
+                "click",
+                e=>{
+
+                    if(
+                        e.target===modal
+                    ){
+
+                        modal.classList.remove(
+                            "show"
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+</script>
+
+
+<script>
+/* =====================================================
+   TA FINX - EFFECT ONLY
+   ไม่แก้ onclick และไม่ดัก event ของระบบเดิม
+===================================================== */
+
+(function () {
+
+    /* ---------- เสียง ---------- */
+
+    let clickAudio = null;
+
+    function playClickSound() {
+        try {
+
+            const AudioContext =
+                window.AudioContext ||
+                window.webkitAudioContext;
+
+            if (!AudioContext) return;
+
+            if (!clickAudio) {
+                clickAudio = new AudioContext();
+            }
+
+            if (clickAudio.state === "suspended") {
+                clickAudio.resume();
+            }
+
+            const oscillator =
+                clickAudio.createOscillator();
+
+            const gain =
+                clickAudio.createGain();
+
+            oscillator.connect(gain);
+            gain.connect(
+                clickAudio.destination
+            );
+
+            oscillator.type = "sine";
+
+            oscillator.frequency.value = 650;
+
+            gain.gain.setValueAtTime(
+                0.0001,
+                clickAudio.currentTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.025,
+                clickAudio.currentTime + 0.01
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001,
+                clickAudio.currentTime + 0.07
+            );
+
+            oscillator.start();
+
+            oscillator.stop(
+                clickAudio.currentTime + 0.08
+            );
+
+        } catch (e) {
+            /* ไม่กระทบระบบเดิม */
+        }
+    }
+
+
+    /* ---------- Ripple ---------- */
+
+    function createRipple(x, y) {
+
+        const ripple =
+            document.createElement("span");
+
+        ripple.style.position = "fixed";
+        ripple.style.left = x + "px";
+        ripple.style.top = y + "px";
+        ripple.style.width = "10px";
+        ripple.style.height = "10px";
+        ripple.style.borderRadius = "50%";
+        ripple.style.background =
+            "rgba(0,217,255,.30)";
+        ripple.style.pointerEvents = "none";
+        ripple.style.zIndex = "999999";
+        ripple.style.transform =
+            "translate(-50%,-50%)";
+
+        document.body.appendChild(ripple);
+
+        ripple.animate(
+            [
+                {
+                    opacity: 0.8,
+                    transform:
+                        "translate(-50%,-50%) scale(1)"
+                },
+                {
+                    opacity: 0,
+                    transform:
+                        "translate(-50%,-50%) scale(9)"
+                }
+            ],
+            {
+                duration: 500,
+                easing: "ease-out"
+            }
+        );
+
+        setTimeout(function () {
+            ripple.remove();
+        }, 520);
+    }
+
+
+    /* ---------- Glow ---------- */
+
+    function createGlow(x, y) {
+
+        const glow =
+            document.createElement("span");
+
+        glow.style.position = "fixed";
+        glow.style.left = x + "px";
+        glow.style.top = y + "px";
+        glow.style.width = "80px";
+        glow.style.height = "80px";
+        glow.style.borderRadius = "50%";
+        glow.style.pointerEvents = "none";
+        glow.style.zIndex = "999998";
+        glow.style.transform =
+            "translate(-50%,-50%)";
+
+        glow.style.background =
+            "radial-gradient(circle," +
+            "rgba(0,217,255,.20)," +
+            "transparent 70%)";
+
+        document.body.appendChild(glow);
+
+        glow.animate(
+            [
+                {
+                    opacity: 0.8,
+                    transform:
+                        "translate(-50%,-50%) scale(.5)"
+                },
+                {
+                    opacity: 0,
+                    transform:
+                        "translate(-50%,-50%) scale(1.8)"
+                }
+            ],
+            {
+                duration: 500,
+                easing: "ease-out"
+            }
+        );
+
+        setTimeout(function () {
+            glow.remove();
+        }, 520);
+    }
+
+
+    /*
+       สำคัญมาก
+
+       ใช้ CAPTURE = FALSE
+       ไม่ใช้ preventDefault()
+       ไม่ใช้ stopPropagation()
+       ไม่เปลี่ยน onclick เดิม
+
+       ดังนั้นระบบเดิมของ TAr POCKET
+       จะได้รับ click ตามปกติ
+    */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const target =
+                event.target.closest(
+                    "button, .btn, .nav-btn"
+                );
+
+            if (!target) return;
+
+            playClickSound();
+
+            createRipple(
+                event.clientX,
+                event.clientY
+            );
+
+            createGlow(
+                event.clientX,
+                event.clientY
+            );
+
+        },
+        false
+    );
+
+
+    /* ---------- Stat Card ---------- */
+
+    const style =
+        document.createElement("style");
+
+    style.textContent = `
+
+        button,
+        .btn,
+        .nav-btn {
+            transition:
+                transform .18s ease,
+                filter .18s ease,
+                box-shadow .18s ease;
+        }
+
+        button:hover,
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        button:active,
+        .btn:active {
+            transform: translateY(1px) scale(.97);
+        }
+
+        .nav-btn.active {
+            animation:
+                tafinxMenuAnimation .35s ease;
+        }
+
+        @keyframes tafinxMenuAnimation {
+
+            0% {
+                transform: translateX(-5px);
+                opacity: .7;
+            }
+
+            60% {
+                transform: translateX(3px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+
+        }
+
+        .tafinx-stat-animation {
+            animation:
+                tafinxStatAnimation .5s ease both;
+        }
+
+        @keyframes tafinxStatAnimation {
+
+            from {
+                opacity: 0;
+                transform:
+                    translateY(12px)
+                    scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform:
+                    translateY(0)
+                    scale(1);
+            }
+
+        }
+    `;
+
+    document.head.appendChild(style);
+
+})();
+</script>
+<script>
+/* =====================================================
+   TA FINX AUTHENTICATION
+===================================================== */
+(function () {
+    const state = {
+        mode: "login",
+        challengeId: "",
+        challengeType: "",
+        remember: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const authModal = $("authModal");
+    const loginForm = $("authLoginForm");
+    const registerForm = $("authRegisterForm");
+    const otpForm = $("authOtpForm");
+    const authSwitch = $("authSwitch");
+    const notice = $("authNotice");
+
+    function showNotice(message, type = "error") {
+        notice.textContent = message;
+        notice.className = `auth-notice show ${type}`;
+    }
+
+    function clearNotice() {
+        notice.textContent = "";
+        notice.className = "auth-notice";
+    }
+
+    async function api(path, options = {}) {
+        const response = await fetch(path, {
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+            ...options
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.message || "ไม่สามารถเชื่อมต่อระบบได้");
+        return data;
+    }
+
+    function setAuthMode(mode) {
+        state.mode = mode;
+        if (mode !== "otp") state.challengeId = "";
+        clearNotice();
+        loginForm.hidden = mode !== "login";
+        registerForm.hidden = mode !== "register";
+        otpForm.hidden = mode !== "otp";
+        authSwitch.hidden = mode === "otp";
+        $("authModalTitle").textContent = mode === "register" ? "สมัครสมาชิก TAr POCKET" : mode === "otp" ? "ยืนยันตัวตนสองชั้น" : "เข้าสู่ระบบ TAr POCKET";
+        $("authModalSubtitle").textContent = mode === "otp" ? "กรอกรหัส 6 หลักเพื่อยืนยันว่าเป็นคุณ" : "จัดการการเงินของคุณอย่างปลอดภัย";
+        if (mode === "login") {
+            authSwitch.innerHTML = '<span>ยังไม่มีบัญชี?</span> <button class="text-btn" type="button" onclick="openAuth(\'register\')">สมัครสมาชิก</button>';
+        } else if (mode === "register") {
+            authSwitch.innerHTML = '<span>มีบัญชีแล้ว?</span> <button class="text-btn" type="button" onclick="openAuth(\'login\')">เข้าสู่ระบบ</button>';
+        }
+        if (mode === "otp") setTimeout(() => $("otpCode").focus(), 50);
+        if (window.lucide) lucide.createIcons();
+    }
+
+    window.openAuth = function (mode = "login") {
+        state.challengeId = "";
+        state.challengeType = "";
+        setAuthMode(mode);
+        authModal.classList.add("show");
+    };
+
+    window.closeAuth = function () {
+        authModal.classList.remove("show");
+        if (state.mode === "otp") setAuthMode("login");
+    };
+
+    window.backToAuthForm = function () {
+        setAuthMode(state.challengeType === "registration" ? "register" : "login");
+    };
+
+    function showOtp(data, type) {
+        state.challengeId = data.challengeId;
+        state.challengeType = type;
+        state.remember = Boolean(data.remember);
+        setAuthMode("otp");
+        const setup = $("totpSetup");
+        setup.hidden = !data.setupKey;
+        if (data.setupKey) {
+            $("totpSetupKey").textContent = data.setupKey;
+            $("totpUriLink").hidden = !data.otpauthUri;
+            $("totpUriLink").href = data.otpauthUri || "#";
+        }
+        $("otpCode").value = data.devCode || "";
+        $("otpHint").textContent = data.devCode
+            ? `โหมดทดสอบ: รหัสปัจจุบันคือ ${data.devCode} (ในใช้งานจริงให้ใช้รหัสจากแอป Google Authenticator)`
+            : "เปิด Google Authenticator แล้วกรอกรหัส 6 หลักล่าสุด";
+        if (data.devCode) showNotice("สร้างรหัส TOTP แล้ว — สามารถใช้รหัสทดสอบนี้แทนรหัสในแอปได้", "info");
+    }
+
+    window.copySetupKey = async function () {
+        const key = $("totpSetupKey").textContent;
+        try {
+            await navigator.clipboard.writeText(key);
+            showToast("คัดลอก Setup Key แล้ว");
+        } catch {
+            showNotice("คัดลอกอัตโนมัติไม่ได้ กรุณาเลือกและคัดลอก Setup Key ด้วยตัวเอง", "info");
+        }
+    };
+
+    loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearNotice();
+        const submit = loginForm.querySelector("button[type=submit]");
+        submit.disabled = true;
+        try {
+            const data = await api("/api/auth/login", {
+                method: "POST",
+                body: JSON.stringify({
+                    email: $("loginEmail").value,
+                    password: $("loginPassword").value
+                })
+            });
+            showOtp(data, "login");
+        } catch (error) {
+            showNotice(error.message);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    registerForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearNotice();
+        if ($("registerPassword").value !== $("registerPasswordConfirm").value) {
+            showNotice("รหัสผ่านทั้งสองช่องไม่ตรงกัน");
+            return;
+        }
+        const submit = registerForm.querySelector("button[type=submit]");
+        submit.disabled = true;
+        try {
+            const data = await api("/api/auth/register", {
+                method: "POST",
+                body: JSON.stringify({
+                    name: $("registerName").value,
+                    email: $("registerEmail").value,
+                    password: $("registerPassword").value,
+                    passwordConfirm: $("registerPasswordConfirm").value
+                })
+            });
+            showOtp(data, "registration");
+        } catch (error) {
+            showNotice(error.message);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    otpForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearNotice();
+        const submit = otpForm.querySelector("button[type=submit]");
+        submit.disabled = true;
+        try {
+            const endpoint = state.challengeType === "registration" ? "/api/auth/verify-registration" : "/api/auth/verify-login";
+            const data = await api(endpoint, {
+                method: "POST",
+                body: JSON.stringify({
+                    challengeId: state.challengeId,
+                    code: $("otpCode").value,
+                    remember: state.remember
+                })
+            });
+            await onAuthenticated(data.user);
+        } catch (error) {
+            showNotice(error.message);
+        } finally {
+            submit.disabled = false;
+        }
+    });
+
+    window.resendOtp = async function () {
+        if (!state.challengeId) return;
+        try {
+            const data = await api("/api/auth/resend-otp", {
+                method: "POST",
+                body: JSON.stringify({ challengeId: state.challengeId })
+            });
+            showOtp(data, state.challengeType);
+            showNotice("ส่งรหัสยืนยันใหม่แล้ว", "success");
+        } catch (error) {
+            showNotice(error.message);
+        }
+    };
+
+    function loadUserData(user) {
+        window.__tafinxUserId = user.id;
+        window.__tafinxCurrentUser = user;
+        transactions = JSON.parse(localStorage.getItem(window.__tafinxScopedKey("tafinx_transactions")) || "[]");
+        goals = JSON.parse(localStorage.getItem(window.__tafinxScopedKey("tafinx_goals")) || "[]");
+        budgets = JSON.parse(localStorage.getItem(window.__tafinxScopedKey("tafinx_budgets")) || "[]");
+        loadTheme();
+    }
+
+    async function onAuthenticated(user) {
+        loadUserData(user);
+        $("accountPanel").hidden = false;
+        $("accountName").textContent = user.name;
+        $("accountEmail").textContent = user.email;
+        $("adminNav").hidden = user.role !== "admin";
+        $("welcome").classList.add("hide");
+        setTimeout(() => { $("welcome").style.display = "none"; }, 700);
+        $("app").classList.add("active");
+        goPage("dashboard");
+        updateAll();
+        closeAuth();
+        if (window.lucide) lucide.createIcons();
+        showToast(`ยินดีต้อนรับ ${user.name} 👋`);
+    }
+
+    window.logout = async function () {
+        try { await api("/api/auth/logout", { method: "POST", body: "{}" }); } catch (error) { /* continue local logout */ }
+        window.__tafinxUserId = null;
+        window.__tafinxCurrentUser = null;
+        location.reload();
+    };
+
+    window.loadAdminData = async function () {
+        if (!window.__tafinxCurrentUser || window.__tafinxCurrentUser.role !== "admin") return;
+        try {
+            const [statsData, usersData] = await Promise.all([api("/api/admin/stats"), api("/api/admin/users")]);
+            $("adminTotalUsers").textContent = statsData.stats.total;
+            $("adminVerifiedUsers").textContent = statsData.stats.verified;
+            $("adminSuspendedUsers").textContent = statsData.stats.suspended;
+            $("adminUserRows").innerHTML = usersData.users.map((user) => {
+                const status = user.status === "active" ? "ใช้งานอยู่" : "ถูกระงับ";
+                const actionStatus = user.status === "active" ? "suspended" : "active";
+                const actionLabel = user.status === "active" ? "ระงับ" : "เปิดใช้งาน";
+                const nextRole = user.role === "admin" ? "user" : "admin";
+                const roleLabel = user.role === "admin" ? "ลดเป็น user" : "ตั้งเป็น admin";
+                const own = user.id === window.__tafinxCurrentUser.id;
+                return `<tr><td><strong>${escapeHTML(user.name)}</strong></td><td>${escapeHTML(user.email)}</td><td>${user.role}</td><td><span class="status-pill ${user.status}">${status}</span></td><td>${new Intl.DateTimeFormat("th-TH", { dateStyle: "medium" }).format(new Date(user.createdAt))}</td><td><div class="admin-actions">${own ? "<small>บัญชีปัจจุบัน</small>" : `<button class="small-btn" type="button" onclick="updateUser('${user.id}', 'status', '${actionStatus}')">${actionLabel}</button><button class="small-btn" type="button" onclick="updateUser('${user.id}', 'role', '${nextRole}')">${roleLabel}</button>`}</div></td></tr>`;
+            }).join("");
+            if (window.lucide) lucide.createIcons();
+        } catch (error) {
+            showToast(error.message);
+        }
+    };
+
+    window.updateUser = async function (id, field, value) {
+        try {
+            await api(`/api/admin/users/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ [field]: value }) });
+            await loadAdminData();
+            showToast("อัปเดตสมาชิกแล้ว");
+        } catch (error) {
+            showToast(error.message);
+        }
+    };
+
+    document.addEventListener("click", (event) => {
+        const adminButton = event.target.closest(".nav-btn[data-page=admin]");
+        if (adminButton && window.__tafinxCurrentUser && window.__tafinxCurrentUser.role === "admin") {
+            setTimeout(loadAdminData, 50);
+        }
+    });
+
+    window.addEventListener("load", async () => {
+        try {
+            const data = await api("/api/auth/me");
+            if (data.user) await onAuthenticated(data.user);
+        } catch (error) {
+            console.warn("Auth service is unavailable until the Node server is started.");
+        }
+    });
+})();
+</script>
+</body>
+</html>
