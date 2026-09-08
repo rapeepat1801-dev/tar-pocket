@@ -1,0 +1,13 @@
+{
+  "name": "tar-pocket-auth",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TAr POCKET personal finance app with authentication, OTP two-step verification and admin back office",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
