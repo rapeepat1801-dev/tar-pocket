@@ -3786,7 +3786,7 @@ window.readReceiptWithAI = async function(){
     if(button) button.disabled = true;
     setReceiptOcrStatus("กำลังส่งภาพให้ AI อ่านข้อมูล อาจใช้เวลาสักครู่...", "working");
     try{
-        const data = await api("/api/receipts/read", {
+        const data = await window.__tafinxApi("/api/receipts/read", {
             method:"POST",
             body:JSON.stringify({image:transactionReceipt.dataUrl})
         });
@@ -7114,6 +7114,8 @@ document
         return data;
     }
 
+    window.__tafinxApi = api;
+
     function setAuthMode(mode) {
         state.mode = mode;
         if (mode !== "otp") state.challengeId = "";
@@ -7346,3 +7348,4 @@ document
 </script>
 </body>
 </html>
+
