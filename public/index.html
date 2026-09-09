@@ -166,7 +166,8 @@ body{
     display:flex;
     align-items:center;
     justify-content:center;
-    font-size:42px;
+    font-size:38px;
+    letter-spacing:-2px;
     font-weight:900;
     background:
         linear-gradient(
@@ -1271,6 +1272,10 @@ option{
 .receipt-upload-actions .btn{font-size:12px;padding:9px 12px;}
 .receipt-upload-actions input[type=file]{display:none;}
 .receipt-upload-hint{display:block;color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+.receipt-ocr-status{display:block;color:var(--muted);font-size:11px;margin-top:8px;line-height:1.5;}
+.receipt-ocr-status[data-state="working"]{color:var(--yellow);}
+.receipt-ocr-status[data-state="success"]{color:var(--green);}
+.receipt-ocr-status[data-state="error"]{color:var(--red);}
 .receipt-preview{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px;border:1px solid rgba(32,227,162,.25);border-radius:11px;background:rgba(32,227,162,.06);}
 .receipt-preview[hidden]{display:none;}
 .receipt-preview img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid var(--border);}
@@ -1302,6 +1307,8 @@ option{
 </head>
 
 <body>
+
+
 <!-- =====================================================
      หน้าต้อนรับ
 ===================================================== -->
@@ -2894,8 +2901,12 @@ option{
                     <button class="btn receipt-action-btn" type="button" onclick="openReceiptCamera()">
                         <i data-lucide="camera"></i> ถ่ายภาพสลิป
                     </button>
+                    <button class="btn receipt-action-btn" type="button" id="receiptReadButton" onclick="readReceiptWithAI()" disabled>
+                        <i data-lucide="sparkles"></i> ให้ AI อ่านสลิป
+                    </button>
                 </div>
-                <small class="receipt-upload-hint">รองรับไฟล์ภาพ JPG, PNG หรือถ่ายจากกล้องได้ ระบบจะย่อภาพและบันทึกไว้กับรายการนี้</small>
+                <small class="receipt-upload-hint">รองรับไฟล์ภาพ JPG, PNG หรือถ่ายจากกล้องได้ ระบบจะย่อภาพ บันทึกไว้ และให้ AI อ่านข้อมูลเพื่อกรอกฟอร์ม</small>
+                <small class="receipt-ocr-status" id="receiptOcrStatus">ตรวจสอบข้อมูลที่ AI อ่านก่อนกด “บันทึกข้อมูล” ทุกครั้ง</small>
                 <div class="receipt-preview" id="receiptPreview" hidden>
                     <img id="receiptPreviewImage" alt="ตัวอย่างสลิป">
                     <div class="receipt-preview-info">
@@ -3193,6 +3204,19 @@ let budgets =
 /* Receipt image currently attached to the transaction form. */
 let transactionReceipt = null;
 let receiptCameraStream = null;
+
+function setReceiptOcrStatus(message, state = ""){
+    const status = document.getElementById("receiptOcrStatus");
+    if(!status) return;
+    status.textContent = message;
+    status.dataset.state = state;
+}
+
+function resetReceiptOcr(){
+    const button = document.getElementById("receiptReadButton");
+    if(button) button.disabled = !transactionReceipt;
+    setReceiptOcrStatus("ตรวจสอบข้อมูลที่ AI อ่านก่อนกด “บันทึกข้อมูล” ทุกครั้ง");
+}
 
 
 const categories = {
@@ -3729,7 +3753,9 @@ window.handleReceiptFile = async function(input){
     try{
         transactionReceipt = await compressReceiptImage(file);
         renderReceiptPreview();
-        showToast("แนบสลิปแล้ว กดบันทึกข้อมูลเพื่อบันทึก");
+        resetReceiptOcr();
+        showToast("แนบสลิปแล้ว กำลังให้ AI อ่านข้อมูล...");
+        await readReceiptWithAI();
     }catch(error){
         showToast(error.message || "แนบสลิปไม่สำเร็จ");
     }finally{
@@ -3745,8 +3771,48 @@ window.removeReceipt = function(){
     const input = document.getElementById("transactionReceiptFile");
     if(input) input.value = "";
     renderReceiptPreview();
+    resetReceiptOcr();
     showToast("นำสลิปออกจากรายการแล้ว");
 
+};
+
+window.readReceiptWithAI = async function(){
+    if(!transactionReceipt || !transactionReceipt.dataUrl){
+        showToast("กรุณาอัปโหลดหรือถ่ายภาพสลิปก่อน");
+        return;
+    }
+
+    const button = document.getElementById("receiptReadButton");
+    if(button) button.disabled = true;
+    setReceiptOcrStatus("กำลังส่งภาพให้ AI อ่านข้อมูล อาจใช้เวลาสักครู่...", "working");
+    try{
+        const data = await api("/api/receipts/read", {
+            method:"POST",
+            body:JSON.stringify({image:transactionReceipt.dataUrl})
+        });
+        const result = data.result || {};
+        const amount = Number(result.amount);
+        if(Number.isFinite(amount) && amount > 0)
+            document.getElementById("transactionAmount").value = amount.toFixed(2);
+        if(result.type === "income" || result.type === "expense")
+            document.getElementById("transactionType").value = result.type;
+        if(/^\d{4}-\d{2}-\d{2}$/.test(String(result.date || "")))
+            document.getElementById("transactionDate").value = result.date;
+        const category = document.getElementById("transactionCategory");
+        if(result.category && [...category.options].some(option=>option.value === result.category))
+            category.value = result.category;
+        const note = document.getElementById("transactionNote");
+        if(result.description || result.merchant)
+            note.value = String(result.description || result.merchant).slice(0, 200);
+        const confidence = result.confidence === "high" ? "มั่นใจสูง" : result.confidence === "medium" ? "มั่นใจปานกลาง" : "ควรตรวจสอบละเอียด";
+        setReceiptOcrStatus(`AI อ่านแล้ว (${confidence}) — กรุณาตรวจยอด วันที่ และรายละเอียด แล้วกดบันทึกข้อมูล`, "success");
+        showToast("AI เติมข้อมูลจากสลิปแล้ว กรุณาตรวจสอบก่อนบันทึก");
+    }catch(error){
+        setReceiptOcrStatus(error.message || "AI อ่านสลิปไม่สำเร็จ", "error");
+        showToast(error.message || "AI อ่านสลิปไม่สำเร็จ");
+    }finally{
+        if(button) button.disabled = !transactionReceipt;
+    }
 };
 
 
@@ -3797,7 +3863,7 @@ window.closeReceiptCamera = function(){
 };
 
 
-window.captureReceipt = function(){
+window.captureReceipt = async function(){
 
     const video = document.getElementById("receiptCamera");
     const canvas = document.getElementById("receiptCanvas");
@@ -3820,7 +3886,9 @@ window.captureReceipt = function(){
 
     renderReceiptPreview();
     closeReceiptCamera();
-    showToast("ถ่ายภาพสลิปแล้ว กดบันทึกข้อมูลเพื่อบันทึก");
+    resetReceiptOcr();
+    showToast("ถ่ายภาพสลิปแล้ว กำลังให้ AI อ่านข้อมูล...");
+    await readReceiptWithAI();
 
 };
 
@@ -3839,6 +3907,7 @@ function openTransactionModal(type){
     form.reset();
     transactionReceipt = null;
     renderReceiptPreview();
+    resetReceiptOcr();
 
 
     document
@@ -7033,8 +7102,10 @@ document
     }
 
     async function api(path, options = {}) {
-        const response = await fetch(path, {
-            credentials: "same-origin",
+        const localHost = ["localhost", "127.0.0.1"].includes(location.hostname);
+        const apiBase = localHost ? "" : "https://tar-pocket.onrender.com";
+        const response = await fetch(`${apiBase}${path}`, {
+            credentials: localHost ? "same-origin" : "include",
             headers: { "Content-Type": "application/json", ...(options.headers || {}) },
             ...options
         });
