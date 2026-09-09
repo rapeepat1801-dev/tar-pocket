@@ -380,7 +380,7 @@ async function readReceiptWithGroq(image) {
     body: JSON.stringify({
       model: GROQ_VISION_MODEL,
       temperature: 0,
-      max_completion_tokens: 1024,
+      max_completion_tokens: 512,
       reasoning_effort: "none",
       reasoning_format: "hidden",
       response_format: { type: "json_object" },
