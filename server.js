@@ -13,6 +13,13 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
 const REMEMBERED_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const OTP_TTL_MS = 1000 * 60 * 10;
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL || "qwen/qwen3.6-27b";
+const GROQ_SECRET_FILE = process.env.GROQ_SECRET_FILE || "/etc/secrets/tarpocket.key";
+const ALLOWED_ORIGINS = String(process.env.FRONTEND_ORIGINS || "https://rapeepat1801-dev.github.io")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -194,11 +201,14 @@ function parseCookies(req) {
 
 function cookieHeader(token, maxAge) {
   const secure = IS_PRODUCTION ? "; Secure" : "";
-  return `tafinx_session=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure}`;
+  const sameSite = IS_PRODUCTION ? "None" : "Lax";
+  return `tafinx_session=${encodeURIComponent(token)}; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=${maxAge}${secure}`;
 }
 
 function clearCookieHeader() {
-  return "tafinx_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0";
+  const secure = IS_PRODUCTION ? "; Secure" : "";
+  const sameSite = IS_PRODUCTION ? "None" : "Lax";
+  return `tafinx_session=; HttpOnly; SameSite=${sameSite}; Path=/; Max-Age=0${secure}`;
 }
 
 function createSession(user, remember = false) {
@@ -242,12 +252,12 @@ function requireAdmin(req, res) {
   return user;
 }
 
-function readJson(req) {
+function readJson(req, maxBytes = 1024 * 1024) {
   return new Promise((resolve, reject) => {
     let data = "";
     req.on("data", (chunk) => {
       data += chunk;
-      if (data.length > 1024 * 1024) {
+      if (data.length > maxBytes) {
         reject(new Error("Payload too large"));
         req.destroy();
       }
@@ -294,9 +304,142 @@ function validatePassword(password) {
   return typeof password === "string" && password.length >= 8 && password.length <= 128;
 }
 
+function parseGroqJson(content) {
+  const text = String(content || "").trim();
+  const withoutFence = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  return JSON.parse(withoutFence);
+}
+
+function getGroqApiKey() {
+  if (process.env.GROQ_API_KEY) return process.env.GROQ_API_KEY.trim();
+  try {
+    return fs.readFileSync(GROQ_SECRET_FILE, "utf8").trim();
+  } catch {
+    return "";
+  }
+}
+
+async function readReceiptWithGroq(image) {
+  const groqApiKey = getGroqApiKey();
+  if (!groqApiKey) {
+    const error = new Error("ยังไม่ได้ตั้งค่า GROQ_API_KEY บน Render");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const imageMatch = String(image || "").match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/i);
+  if (!imageMatch) {
+    const error = new Error("รูปสลิปไม่ถูกต้องหรือไม่รองรับ");
+    error.statusCode = 400;
+    throw error;
+  }
+  if (String(image).length > 4.5 * 1024 * 1024) {
+    const error = new Error("รูปสลิปใหญ่เกินไป กรุณาถ่ายใหม่หรือใช้ภาพที่เล็กลง");
+    error.statusCode = 413;
+    throw error;
+  }
+
+  const categoryNames = [
+    "อาหาร", "เครื่องดื่ม", "คาเฟ่", "เดลิเวอรี", "ของใช้ประจำวัน", "อาหารสุขภาพ",
+    "รถโดยสาร", "แท็กซี่ / รถรับจ้าง", "น้ำมัน", "ค่าจอดรถ", "ซ่อมรถ", "ค่าเช่ารถ",
+    "หนังสือ", "อุปกรณ์การเรียน", "ค่าเรียน", "ค่าสอบ", "ซอฟต์แวร์", "ปริ้น / ถ่ายเอกสาร",
+    "ค่าเช่าที่พัก", "ค่าไฟ", "ค่าน้ำ", "อินเทอร์เน็ต", "โทรศัพท์", "ของใช้ในบ้าน",
+    "เสื้อผ้า", "รองเท้า", "กระเป๋า", "เครื่องสำอาง", "อุปกรณ์ไอที", "อุปกรณ์เสริม",
+    "ดูหนัง", "เพลง", "เกม", "บริการสตรีมมิง", "คอนเสิร์ต", "ท่องเที่ยว",
+    "ยา", "ค่ารักษา", "ทันตกรรม", "ฟิตเนส", "สุขภาพและความงาม",
+    "อาหารสัตว์", "ค่ารักษา", "ของเล่น", "อุปกรณ์สัตว์เลี้ยง", "ดูแลสัตว์เลี้ยง",
+    "ของขวัญ", "วันเกิด", "ดอกไม้", "ครอบครัว", "บริจาค", "งานสังคม",
+    "ค่าธรรมเนียม", "ค่าธนาคาร", "ค่าบริการ", "การโอนเงิน"
+  ];
+
+  const prompt = [
+    "Read this Thai or English receipt and extract fields for a personal finance transaction.",
+    "Return ONLY a JSON object with exactly these keys:",
+    "type (expense or income or null), amount (number or null), date (YYYY-MM-DD or null),",
+    "merchant (string or null), description (string or null), category (one exact value from the allowed list or null),",
+    "confidence (high, medium, or low).",
+    "Use the final amount or grand total, not a subtotal, tax, change, phone number, or receipt number.",
+    "Do not guess. If a value is unclear, return null. For Thai Buddhist years, convert to Gregorian.",
+    `Allowed categories: ${categoryNames.join(", ")}`
+  ].join(" ");
+
+  const response = await fetch(GROQ_API_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${groqApiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: GROQ_VISION_MODEL,
+      temperature: 0,
+      max_completion_tokens: 400,
+      response_format: { type: "json_object" },
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: image } }
+        ]
+      }]
+    }),
+    signal: AbortSignal.timeout(45000)
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    console.error("Groq receipt reader error:", response.status, payload?.error?.message || "unknown error");
+    const error = new Error("AI อ่านสลิปไม่สำเร็จ กรุณาลองภาพที่คมชัดขึ้น");
+    error.statusCode = response.status === 429 ? 429 : 502;
+    throw error;
+  }
+
+  const content = payload?.choices?.[0]?.message?.content;
+  let result;
+  try {
+    result = parseGroqJson(content);
+  } catch {
+    const error = new Error("AI ส่งข้อมูลสลิปกลับมาไม่ถูกต้อง");
+    error.statusCode = 502;
+    throw error;
+  }
+  return {
+    type: ["expense", "income"].includes(result?.type) ? result.type : null,
+    amount: Number.isFinite(Number(result?.amount)) && Number(result.amount) > 0 ? Number(result.amount) : null,
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(result?.date || "")) ? result.date : null,
+    merchant: result?.merchant ? String(result.merchant).slice(0, 120) : null,
+    description: result?.description ? String(result.description).slice(0, 200) : null,
+    category: result?.category ? String(result.category).slice(0, 80) : null,
+    confidence: ["high", "medium", "low"].includes(result?.confidence) ? result.confidence : "low"
+  };
+}
+
 async function handleApi(req, res, pathname) {
+  const origin = String(req.headers.origin || "");
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
+    res.setHeader("Vary", "Origin");
+  }
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+  }
+
   if (req.method === "GET" && pathname === "/api/health") {
     return sendJson(res, 200, { ok: true, service: "ta-finx", timestamp: new Date().toISOString() });
+  }
+
+  if (req.method === "POST" && pathname === "/api/receipts/read") {
+    if (!requireUser(req, res)) return;
+    try {
+      const body = await readJson(req, 5 * 1024 * 1024);
+      const result = await readReceiptWithGroq(body.image);
+      return sendJson(res, 200, { ok: true, result, model: GROQ_VISION_MODEL });
+    } catch (error) {
+      const statusCode = Number(error.statusCode) || (error.name === "TimeoutError" ? 504 : 500);
+      return sendError(res, statusCode, error.message || "AI อ่านสลิปไม่สำเร็จ");
+    }
   }
 
   if (req.method === "GET" && pathname === "/api/auth/me") {
