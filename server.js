@@ -199,6 +199,13 @@ function parseCookies(req) {
   }, {});
 }
 
+function getAuthToken(req) {
+  const authorization = String(req.headers.authorization || "");
+  const bearer = authorization.match(/^Bearer\s+(.+)$/i);
+  if (bearer && bearer[1]) return bearer[1].trim();
+  return parseCookies(req).tafinx_session;
+}
+
 function cookieHeader(token, maxAge) {
   const secure = IS_PRODUCTION ? "; Secure" : "";
   const sameSite = IS_PRODUCTION ? "None" : "Lax";
@@ -219,7 +226,7 @@ function createSession(user, remember = false) {
 }
 
 function getSessionUser(req) {
-  const token = parseCookies(req).tafinx_session;
+  const token = getAuthToken(req);
   const session = token && sessions.get(token);
   if (!session) return null;
   if (session.expiresAt <= Date.now()) {
@@ -419,7 +426,7 @@ async function handleApi(req, res, pathname) {
   if (ALLOWED_ORIGINS.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,OPTIONS");
     res.setHeader("Vary", "Origin");
   }
@@ -518,7 +525,12 @@ async function handleApi(req, res, pathname) {
     user.lastLoginAt = new Date().toISOString();
     saveStore();
     const session = createSession(user, Boolean(body.remember));
-    return sendJson(res, 200, { ok: true, user: safeUser(user) }, { "Set-Cookie": cookieHeader(session.token, session.maxAge) });
+    return sendJson(res, 200, {
+      ok: true,
+      user: safeUser(user),
+      token: session.token,
+      expiresIn: session.maxAge
+    }, { "Set-Cookie": cookieHeader(session.token, session.maxAge) });
   }
 
   if (req.method === "POST" && pathname === "/api/auth/resend-otp") {
@@ -533,7 +545,7 @@ async function handleApi(req, res, pathname) {
   }
 
   if (req.method === "POST" && pathname === "/api/auth/logout") {
-    const token = parseCookies(req).tafinx_session;
+    const token = getAuthToken(req);
     if (token) sessions.delete(token);
     return sendJson(res, 200, { ok: true }, { "Set-Cookie": clearCookieHeader() });
   }
