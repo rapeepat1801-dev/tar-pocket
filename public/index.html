@@ -7090,6 +7090,19 @@ document
     const otpForm = $("authOtpForm");
     const authSwitch = $("authSwitch");
     const notice = $("authNotice");
+    let memoryAuthToken = "";
+
+    function getAuthToken() {
+        return memoryAuthToken;
+    }
+
+    function clearAuthToken() {
+        memoryAuthToken = "";
+    }
+
+    function saveAuthToken(token) {
+        memoryAuthToken = token ? String(token) : "";
+    }
 
     function showNotice(message, type = "error") {
         notice.textContent = message;
@@ -7104,13 +7117,21 @@ document
     async function api(path, options = {}) {
         const localHost = ["localhost", "127.0.0.1"].includes(location.hostname);
         const apiBase = localHost ? "" : "https://tar-pocket.onrender.com";
+        const authToken = getAuthToken();
         const response = await fetch(`${apiBase}${path}`, {
             credentials: localHost ? "same-origin" : "include",
-            headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-            ...options
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+                ...(options.headers || {})
+            }
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.message || "ไม่สามารถเชื่อมต่อระบบได้");
+        if (!response.ok) {
+            if (response.status === 401) clearAuthToken();
+            throw new Error(data.message || "ไม่สามารถเชื่อมต่อระบบได้");
+        }
         return data;
     }
 
@@ -7243,6 +7264,7 @@ document
                     remember: state.remember
                 })
             });
+            saveAuthToken(data.token);
             await onAuthenticated(data.user);
         } catch (error) {
             showNotice(error.message);
@@ -7292,6 +7314,7 @@ document
 
     window.logout = async function () {
         try { await api("/api/auth/logout", { method: "POST", body: "{}" }); } catch (error) { /* continue local logout */ }
+        clearAuthToken();
         window.__tafinxUserId = null;
         window.__tafinxCurrentUser = null;
         location.reload();
