@@ -367,6 +367,7 @@ async function readReceiptWithGroq(image) {
     "confidence (high, medium, or low).",
     "Use the final amount or grand total, not a subtotal, tax, change, phone number, or receipt number.",
     "Do not guess. If a value is unclear, return null. For Thai Buddhist years, convert to Gregorian.",
+    "Thai month mapping: ม.ค./มกราคม=01, ก.พ./กุมภาพันธ์=02, มี.ค./มีนาคม=03, เม.ย./เมษายน=04, พ.ค./พฤษภาคม=05, มิ.ย./มิถุนายน=06, ก.ค./กรกฎาคม=07, ส.ค./สิงหาคม=08, ก.ย./กันยายน=09, ต.ค./ตุลาคม=10, พ.ย./พฤศจิกายน=11, ธ.ค./ธันวาคม=12. A two-digit Buddhist year such as 69 means 2569, so 9 ก.ย. 69 is 2026-09-09.",
     `Allowed categories: ${categoryNames.join(", ")}`
   ].join(" ");
 
