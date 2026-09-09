@@ -372,7 +372,9 @@ async function readReceiptWithGroq(image) {
     body: JSON.stringify({
       model: GROQ_VISION_MODEL,
       temperature: 0,
-      max_completion_tokens: 400,
+      max_completion_tokens: 1024,
+      reasoning_effort: "none",
+      reasoning_format: "hidden",
       response_format: { type: "json_object" },
       messages: [{
         role: "user",
@@ -601,3 +603,4 @@ server.listen(PORT, () => {
   console.log(`Admin demo: admin@tafinx.local / ${process.env.TAFINX_ADMIN_PASSWORD || "Admin@12345"}`);
   if (IS_PRODUCTION) console.log("Production mode: TOTP secrets are kept server-side; use HTTPS and add recovery-code support before deployment.");
 });
+
